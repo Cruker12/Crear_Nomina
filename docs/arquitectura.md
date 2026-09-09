@@ -220,7 +220,7 @@ Referencias:
 
 - Application -> Domain
 - Infrastructure -> Domain, Application
-- Presentation -> Application (y Domain solo para tipos/enums, no servicios concretos)
+- Presentation -> Application, Infrastructure (solo el composition root `App.xaml.cs` para registrar DI; ViewModels solo usan Application)
 - Tests -> proyecto correspondiente + mocks
 
 ## 12. Lo que esta arquitectura prohíbe explícitamente

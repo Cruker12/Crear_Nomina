@@ -1,0 +1,15 @@
+using GeneradoNominaSystem.Presentation.ViewModels;
+using Microsoft.Extensions.DependencyInjection;
+
+namespace GeneradoNominaSystem.Presentation;
+
+public static class DependencyInjection
+{
+    public static IServiceCollection AddPresentation(this IServiceCollection services)
+    {
+        services.AddSingleton<MainViewModel>();
+        services.AddSingleton<MainWindow>();
+
+        return services;
+    }
+}
