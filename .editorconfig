@@ -1,0 +1,29 @@
+root = true
+
+[*]
+charset = utf-8
+end_of_line = crlf
+insert_final_newline = true
+trim_trailing_whitespace = true
+indent_style = space
+indent_size = 4
+
+[*.{cs,csx}]
+indent_size = 4
+
+[*.{sln,csproj}]
+indent_style = space
+indent_size = 2
+
+# C# naming: types and members PascalCase (enforced via IDE suggestions, not build errors in Fase 1)
+dotnet_naming_rule.types_should_be_pascal_case.severity = suggestion
+dotnet_naming_rule.types_should_be_pascal_case.symbols = types
+dotnet_naming_rule.types_should_be_pascal_case.style = pascal_case_style
+
+dotnet_naming_symbols.types.applicable_kinds = class, struct, interface, enum, namespace, property, method
+dotnet_naming_style.pascal_case_style.capitalization = pascal_case
+
+# Prefer file-scoped namespaces (C# 10+)
+csharp_style_namespace_declarations = file_scoped:suggestion
+
+# Nullable + implicit usings already enabled in csproj; keep var preferences neutral in Fase 1
