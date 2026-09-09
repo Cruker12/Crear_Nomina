@@ -4,12 +4,20 @@
         xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:local="clr-namespace:GeneradoNominaSystem.Presentation"
+        xmlns:views="clr-namespace:GeneradoNominaSystem.Presentation.Views"
         mc:Ignorable="d"
-        Title="{Binding Titulo}" Height="450" Width="800">
+        Title="{Binding Titulo}" Height="700" Width="1000">
     <Grid>
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="*" />
+        </Grid.RowDefinitions>
+
         <TextBlock Text="{Binding Titulo}"
                    HorizontalAlignment="Center"
-                   VerticalAlignment="Center"
-                   FontSize="24" />
+                   FontSize="22"
+                   Margin="0,8" />
+
+        <views:EmpresaView x:Name="EmpresaView" Grid.Row="1" />
     </Grid>
 </Window>

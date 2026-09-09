@@ -8,6 +8,7 @@ public static class DependencyInjection
     public static IServiceCollection AddPresentation(this IServiceCollection services)
     {
         services.AddSingleton<MainViewModel>();
+        services.AddTransient<EmpresaViewModel>();
         services.AddSingleton<MainWindow>();
 
         return services;

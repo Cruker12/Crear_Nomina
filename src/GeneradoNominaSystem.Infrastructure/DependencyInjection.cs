@@ -1,3 +1,4 @@
+using GeneradoNominaSystem.Domain.Interfaces;
 using GeneradoNominaSystem.Domain.Interfaces.Repositories;
 using GeneradoNominaSystem.Infrastructure.Data;
 using GeneradoNominaSystem.Infrastructure.Logging;
@@ -47,6 +48,7 @@ public static class DependencyInjection
         services.AddScoped<IProductoServicioRepository, ProductoServicioRepository>();
         services.AddScoped<IPlantillaCotizacionRepository, PlantillaCotizacionRepository>();
         services.AddScoped<IDocumentoRepository, DocumentoRepository>();
+        services.AddScoped<IUnitOfWork, EfUnitOfWork>();
 
         return services;
     }
