@@ -131,6 +131,18 @@ public class Empleado : EntityBase
         MarcarModificacion();
     }
 
+    public void ActualizarDatosLaborales(string cargo, string? departamentoArea)
+    {
+        if (string.IsNullOrWhiteSpace(cargo))
+        {
+            throw new ReglaNegocioException("El cargo es obligatorio.");
+        }
+
+        Cargo = cargo.Trim();
+        Departamento = departamentoArea?.Trim();
+        MarcarModificacion();
+    }
+
     public void CambiarEstado(EstadoEmpleado nuevoEstado)
     {
         Estado = nuevoEstado;
