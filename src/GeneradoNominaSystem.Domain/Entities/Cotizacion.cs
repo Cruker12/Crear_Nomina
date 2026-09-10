@@ -141,6 +141,12 @@ public class Cotizacion : EntityBase
         MarcarModificacion();
     }
 
+    public void AsignarPlantilla(Guid? plantillaId)
+    {
+        PlantillaCotizacionId = plantillaId;
+        MarcarModificacion();
+    }
+
     public void ActualizarDatosCliente(string? documento, string? email, string? telefono, string? observaciones)
     {
         ClienteDocumento = documento?.Trim();

@@ -24,4 +24,6 @@ public interface ICotizacionService
     Task QuitarDetalleAsync(Guid cotizacionId, Guid detalleId, CancellationToken ct = default);
 
     Task CambiarEstadoAsync(Guid cotizacionId, EstadoCotizacion nuevoEstado, CancellationToken ct = default);
+
+    Task AsignarPlantillaAsync(Guid cotizacionId, Guid? plantillaId, CancellationToken ct = default);
 }

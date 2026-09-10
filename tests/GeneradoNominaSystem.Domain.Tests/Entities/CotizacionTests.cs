@@ -76,4 +76,15 @@ public class CotizacionTests
 
         accion.Should().Throw<ReglaNegocioException>();
     }
+
+    [Fact]
+    public void AsignarPlantilla_ConId_DeberiaFijarla()
+    {
+        var cotizacion = CrearCotizacion();
+        var plantillaId = Guid.NewGuid();
+
+        cotizacion.AsignarPlantilla(plantillaId);
+
+        cotizacion.PlantillaCotizacionId.Should().Be(plantillaId);
+    }
 }

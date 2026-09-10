@@ -15,6 +15,7 @@ public sealed class CotizacionService : ICotizacionService
 {
     private readonly ICotizacionRepository _cotizaciones;
     private readonly IProductoServicioRepository _productos;
+    private readonly IPlantillaCotizacionRepository _plantillas;
     private readonly IUnitOfWork _uow;
     private readonly IServicioNumeracion _numeracion;
     private readonly IValidator<CotizacionDto> _validator;
@@ -23,6 +24,7 @@ public sealed class CotizacionService : ICotizacionService
     public CotizacionService(
         ICotizacionRepository cotizaciones,
         IProductoServicioRepository productos,
+        IPlantillaCotizacionRepository plantillas,
         IUnitOfWork uow,
         IServicioNumeracion numeracion,
         IValidator<CotizacionDto> validator,
@@ -30,6 +32,7 @@ public sealed class CotizacionService : ICotizacionService
     {
         _cotizaciones = cotizaciones;
         _productos = productos;
+        _plantillas = plantillas;
         _uow = uow;
         _numeracion = numeracion;
         _validator = validator;
@@ -69,13 +72,26 @@ public sealed class CotizacionService : ICotizacionService
         var existentes = await _cotizaciones.ListarPorEmpresaAsync(dto.EmpresaId, ct);
         var numero = _numeracion.GenerarNumero("COT", DateTime.UtcNow.Year, existentes.Count + 1);
 
+        Guid? plantillaId = null;
+        if (dto.PlantillaCotizacionId.HasValue)
+        {
+            var plantilla = await _plantillas.ObtenerPorIdAsync(dto.PlantillaCotizacionId.Value, ct);
+            if (plantilla is null || plantilla.EmpresaId != dto.EmpresaId || !plantilla.Activo)
+            {
+                throw new ReglaNegocioException("La plantilla no existe, no está activa o no pertenece a esta empresa.");
+            }
+
+            plantillaId = plantilla.Id;
+        }
+
         var entidad = new Cotizacion(
             dto.EmpresaId,
             dto.ClienteNombre,
             numero,
             dto.FechaEmision,
             dto.FechaVigencia,
-            dto.Moneda);
+            dto.Moneda,
+            plantillaId);
 
         entidad.ActualizarDatosCliente(dto.ClienteDocumento, dto.ClienteEmail, dto.ClienteTelefono, dto.Observaciones);
 
@@ -174,6 +190,28 @@ public sealed class CotizacionService : ICotizacionService
         await _uow.GuardarCambiosAsync(ct);
     }
 
+    public async Task AsignarPlantillaAsync(Guid cotizacionId, Guid? plantillaId, CancellationToken ct = default)
+    {
+        var cotizacion = await _cotizaciones.ObtenerPorIdAsync(cotizacionId, ct);
+        if (cotizacion is null)
+        {
+            throw new ReglaNegocioException("La cotización no existe.");
+        }
+
+        if (plantillaId.HasValue)
+        {
+            var plantilla = await _plantillas.ObtenerPorIdAsync(plantillaId.Value, ct);
+            if (plantilla is null || plantilla.EmpresaId != cotizacion.EmpresaId || !plantilla.Activo)
+            {
+                throw new ReglaNegocioException("La plantilla no existe, no está activa o no pertenece a esta empresa.");
+            }
+        }
+
+        cotizacion.AsignarPlantilla(plantillaId);
+        _cotizaciones.Actualizar(cotizacion);
+        await _uow.GuardarCambiosAsync(ct);
+    }
+
     private async Task<CotizacionDto> MapearAsync(Cotizacion c, CancellationToken ct)
     {
         var dto = new CotizacionDto
@@ -192,6 +230,7 @@ public sealed class CotizacionService : ICotizacionService
             Subtotal = c.Subtotal.Monto,
             TotalNeto = c.TotalNeto.Monto,
             Moneda = c.Moneda,
+            PlantillaCotizacionId = c.PlantillaCotizacionId,
         };
 
         foreach (var d in c.Detalles.OrderBy(x => x.Orden))

@@ -32,5 +32,7 @@ public sealed class CotizacionDto
 
     public string Moneda { get; set; } = "COP";
 
+    public Guid? PlantillaCotizacionId { get; set; }
+
     public List<DetalleCotizacionDto> Detalles { get; set; } = new();
 }

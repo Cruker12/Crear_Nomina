@@ -16,6 +16,7 @@ public class CotizacionServiceTests
 {
     private readonly Mock<ICotizacionRepository> _cotizaciones = new();
     private readonly Mock<IProductoServicioRepository> _productos = new();
+    private readonly Mock<IPlantillaCotizacionRepository> _plantillas = new();
     private readonly Mock<IUnitOfWork> _uow = new();
     private readonly Mock<IServicioNumeracion> _numeracion = new();
     private readonly Guid _empresaId = Guid.NewGuid();
@@ -31,6 +32,7 @@ public class CotizacionServiceTests
         return new CotizacionService(
             _cotizaciones.Object,
             _productos.Object,
+            _plantillas.Object,
             _uow.Object,
             _numeracion.Object,
             new CotizacionValidator(),
@@ -115,5 +117,42 @@ public class CotizacionServiceTests
         await sut.CambiarEstadoAsync(cotizacion.Id, EstadoCotizacion.Enviada);
 
         cotizacion.Estado.Should().Be(EstadoCotizacion.Enviada);
+    }
+
+    [Fact]
+    public async Task AsignarPlantillaAsync_PlantillaValida_DeberiaAsignarla()
+    {
+        var cotizacion = new Cotizacion(
+            _empresaId, "Cliente", "COT-2026-0001",
+            new DateTime(2026, 3, 1), new DateTime(2026, 3, 31));
+        var plantilla = new PlantillaCotizacion(_empresaId, "Formal");
+        _cotizaciones.Setup(r => r.ObtenerPorIdAsync(It.IsAny<Guid>(), It.IsAny<CancellationToken>()))
+            .ReturnsAsync(cotizacion);
+        _plantillas.Setup(r => r.ObtenerPorIdAsync(plantilla.Id, It.IsAny<CancellationToken>()))
+            .ReturnsAsync(plantilla);
+        var sut = CrearSut();
+
+        await sut.AsignarPlantillaAsync(cotizacion.Id, plantilla.Id);
+
+        cotizacion.PlantillaCotizacionId.Should().Be(plantilla.Id);
+        _uow.Verify(u => u.GuardarCambiosAsync(It.IsAny<CancellationToken>()), Times.Once);
+    }
+
+    [Fact]
+    public async Task AsignarPlantillaAsync_OtraEmpresa_DeberiaLanzarReglaNegocio()
+    {
+        var cotizacion = new Cotizacion(
+            _empresaId, "Cliente", "COT-2026-0001",
+            new DateTime(2026, 3, 1), new DateTime(2026, 3, 31));
+        var plantilla = new PlantillaCotizacion(Guid.NewGuid(), "Formal");
+        _cotizaciones.Setup(r => r.ObtenerPorIdAsync(It.IsAny<Guid>(), It.IsAny<CancellationToken>()))
+            .ReturnsAsync(cotizacion);
+        _plantillas.Setup(r => r.ObtenerPorIdAsync(plantilla.Id, It.IsAny<CancellationToken>()))
+            .ReturnsAsync(plantilla);
+        var sut = CrearSut();
+
+        var accion = () => sut.AsignarPlantillaAsync(cotizacion.Id, plantilla.Id);
+
+        await accion.Should().ThrowAsync<ReglaNegocioException>();
     }
 }
