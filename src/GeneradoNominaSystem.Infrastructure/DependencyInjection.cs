@@ -47,6 +47,7 @@ public static class DependencyInjection
         services.AddScoped<IUnitOfWork, EfUnitOfWork>();
         services.AddSingleton<IExportadorDocumento, ExportadorNominaPdf>();
         services.AddSingleton<IExportadorDocumento, ExportadorNominaExcel>();
+        services.AddSingleton<INotificadorDocumentos, NotificadorDocumentos>();
 
         return services;
     }

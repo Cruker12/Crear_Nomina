@@ -258,7 +258,7 @@ public class ServiceCoverageTests
             Mock.Of<INominaRepository>(), Mock.Of<ICotizacionRepository>(), Mock.Of<IProductoServicioRepository>(),
             Mock.Of<IEmpresaRepository>(), Mock.Of<IEmpleadoRepository>(), Mock.Of<IPeriodoNominaRepository>(),
             Mock.Of<IConceptoNominaRepository>(), documentos.Object, _uow.Object,
-            Mock.Of<IServicioNumeracion>(), new List<IExportadorDocumento>());
+            Mock.Of<IServicioNumeracion>(), new List<IExportadorDocumento>(), Mock.Of<INotificadorDocumentos>());
 
         var porEmpresa = await sut.ListarPorEmpresaAsync(_empresaId);
         var porReferencia = await sut.ListarPorReferenciaAsync(Guid.NewGuid());

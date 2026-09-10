@@ -2,6 +2,7 @@ using System.Diagnostics;
 using FluentAssertions;
 using GeneradoNominaSystem.Application.DTOs;
 using GeneradoNominaSystem.Application.Interfaces;
+using GeneradoNominaSystem.Domain.Interfaces.Services;
 using GeneradoNominaSystem.Presentation.ViewModels;
 using Moq;
 
@@ -31,7 +32,7 @@ public class ViewModelCoverageTests
         var empresas = new Mock<IEmpresaService>();
         empresas.Setup(e => e.ListarAsync(It.IsAny<CancellationToken>()))
             .ReturnsAsync(new List<EmpresaDto>());
-        var vm = new HistorialViewModel(historial.Object, empresas.Object);
+        var vm = new HistorialViewModel(historial.Object, empresas.Object, Mock.Of<INotificadorDocumentos>());
         vm.EmpresaSeleccionada = new EmpresaDto { Id = Guid.NewGuid(), NombreComercial = "E" };
         vm.Texto = "juan";
 
@@ -39,6 +40,50 @@ public class ViewModelCoverageTests
         await EsperarMensajeAsync(() => vm.Mensaje);
 
         historial.Verify(h => h.BuscarNominasAsync(It.IsAny<Guid>(), "juan", null, null, null, It.IsAny<CancellationToken>()), Times.AtLeastOnce);
+        vm.EsError.Should().BeFalse();
+    }
+
+    [Fact]
+    public async Task HistorialNotificacion_AlGenerarDocumento_DeberiaRefrescar()
+    {
+        var historial = new Mock<IHistorialService>();
+        historial.Setup(h => h.BuscarNominasAsync(It.IsAny<Guid>(), It.IsAny<string>(), null, null, null, It.IsAny<CancellationToken>()))
+            .ReturnsAsync(new List<NominaDto>());
+        historial.Setup(h => h.BuscarCotizacionesAsync(It.IsAny<Guid>(), It.IsAny<string>(), null, null, null, It.IsAny<CancellationToken>()))
+            .ReturnsAsync(new List<CotizacionDto>());
+        historial.Setup(h => h.ListarDocumentosAsync(It.IsAny<Guid>(), null, null, null, null, It.IsAny<CancellationToken>()))
+            .ReturnsAsync(new List<DocumentoDto>());
+        var empresas = new Mock<IEmpresaService>();
+        empresas.Setup(e => e.ListarAsync(It.IsAny<CancellationToken>()))
+            .ReturnsAsync(new List<EmpresaDto>());
+        var notificador = new Mock<INotificadorDocumentos>();
+        var vm = new HistorialViewModel(historial.Object, empresas.Object, notificador.Object);
+        vm.EmpresaSeleccionada = new EmpresaDto { Id = Guid.NewGuid(), NombreComercial = "E" };
+        await EsperarMensajeAsync(() => vm.Mensaje);
+
+        notificador.Raise(
+            n => n.DocumentoGenerado += null,
+            new DocumentoGeneradoArgs(Guid.NewGuid(), "ruta.pdf"));
+
+        var sw = Stopwatch.StartNew();
+        while (sw.ElapsedMilliseconds < 5000)
+        {
+            try
+            {
+                historial.Verify(
+                    h => h.ListarDocumentosAsync(It.IsAny<Guid>(), null, null, null, null, It.IsAny<CancellationToken>()),
+                    Times.AtLeast(2));
+                break;
+            }
+            catch
+            {
+                await Task.Delay(50);
+            }
+        }
+
+        historial.Verify(
+            h => h.ListarDocumentosAsync(It.IsAny<Guid>(), null, null, null, null, It.IsAny<CancellationToken>()),
+            Times.AtLeast(2));
         vm.EsError.Should().BeFalse();
     }
 

@@ -24,6 +24,7 @@ public sealed class DocumentoService : IDocumentoService
     private readonly IUnitOfWork _uow;
     private readonly IServicioNumeracion _numeracion;
     private readonly IEnumerable<IExportadorDocumento> _exportadores;
+    private readonly INotificadorDocumentos _notificador;
 
     public DocumentoService(
         INominaRepository nominas,
@@ -36,7 +37,8 @@ public sealed class DocumentoService : IDocumentoService
         IDocumentoRepository documentos,
         IUnitOfWork uow,
         IServicioNumeracion numeracion,
-        IEnumerable<IExportadorDocumento> exportadores)
+        IEnumerable<IExportadorDocumento> exportadores,
+        INotificadorDocumentos notificador)
     {
         _nominas = nominas;
         _cotizaciones = cotizaciones;
@@ -49,6 +51,7 @@ public sealed class DocumentoService : IDocumentoService
         _uow = uow;
         _numeracion = numeracion;
         _exportadores = exportadores;
+        _notificador = notificador;
     }
 
     public async Task<DocumentoDto> ExportarNominaAsync(
@@ -98,6 +101,7 @@ public sealed class DocumentoService : IDocumentoService
 
         await _documentos.AgregarAsync(documento, ct);
         await _uow.GuardarCambiosAsync(ct);
+        _notificador.Notificar(documento.ReferenciaId, ruta);
 
         return Mapear(documento);
     }
@@ -161,6 +165,7 @@ public sealed class DocumentoService : IDocumentoService
 
         await _documentos.AgregarAsync(documento, ct);
         await _uow.GuardarCambiosAsync(ct);
+        _notificador.Notificar(documento.ReferenciaId, ruta);
 
         return Mapear(documento);
     }

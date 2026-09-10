@@ -8,6 +8,7 @@ using GeneradoNominaSystem.Domain.Services;
 using GeneradoNominaSystem.Infrastructure.Data;
 using GeneradoNominaSystem.Infrastructure.Exportadores;
 using GeneradoNominaSystem.Infrastructure.Repositories;
+using GeneradoNominaSystem.Infrastructure.Services;
 using Microsoft.EntityFrameworkCore;
 
 namespace GeneradoNominaSystem.IntegrationTests;
@@ -55,7 +56,8 @@ public sealed class NominaEndToEndTests : IDisposable
             nominaRepo, cotizacionRepo, productoRepo, empresaRepo, empleadoRepo,
             periodoRepo, conceptoRepo, documentoRepo, uow,
             new ServicioNumeracion(),
-            new List<IExportadorDocumento> { new ExportadorNominaPdf(), new ExportadorNominaExcel() });
+            new List<IExportadorDocumento> { new ExportadorNominaPdf(), new ExportadorNominaExcel() },
+            new NotificadorDocumentos());
 
         var empresa = await empresaService.CrearAsync(new EmpresaDto
         {

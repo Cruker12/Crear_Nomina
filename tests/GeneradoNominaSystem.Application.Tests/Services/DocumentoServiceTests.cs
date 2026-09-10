@@ -25,6 +25,7 @@ public class DocumentoServiceTests : IDisposable
     private readonly Mock<IUnitOfWork> _uow = new();
     private readonly Mock<IServicioNumeracion> _numeracion = new();
     private readonly Mock<IExportadorDocumento> _exportador = new();
+    private readonly Mock<INotificadorDocumentos> _notificador = new();
 
     private readonly Guid _empresaId = Guid.NewGuid();
     private readonly string _carpeta = Path.Combine(Path.GetTempPath(), $"gns-doc-{Guid.NewGuid():N}");
@@ -88,7 +89,8 @@ public class DocumentoServiceTests : IDisposable
             _documentos.Object,
             _uow.Object,
             _numeracion.Object,
-            new List<IExportadorDocumento> { _exportador.Object });
+            new List<IExportadorDocumento> { _exportador.Object },
+            _notificador.Object);
     }
 
     private void ConfigurarComunes(Nomina nomina)
@@ -165,6 +167,20 @@ public class DocumentoServiceTests : IDisposable
 
         resultado.RutaArchivo.Should().EndWith("Mi Nomina.pdf");
         File.Exists(resultado.RutaArchivo).Should().BeTrue();
+    }
+
+    [Fact]
+    public async Task ExportarNominaAsync_AlGenerar_DeberiaNotificar()
+    {
+        var nomina = CrearNominaCalculada(_empresaId, _empleado.Id, _periodo.Id, _salario.Id);
+        ConfigurarComunes(nomina);
+        var sut = CrearSut();
+
+        await sut.ExportarNominaAsync(nomina.Id, FormatoExportacion.Pdf, Path.Combine(_carpeta, "nomina.pdf"));
+
+        _notificador.Verify(
+            n => n.Notificar(nomina.Id, It.IsAny<string>()),
+            Times.Once);
     }
 
     [Fact]

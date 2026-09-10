@@ -1,10 +1,12 @@
 ﻿using System.Windows;
+using System.Windows.Controls;
 using GeneradoNominaSystem.Presentation.ViewModels;
 
 namespace GeneradoNominaSystem.Presentation;
 
 public partial class MainWindow : Window
 {
+    private readonly HistorialViewModel _historialViewModel;
     public MainWindow(
         MainViewModel viewModel,
         EmpresaViewModel empresaViewModel,
@@ -30,6 +32,7 @@ public partial class MainWindow : Window
         CotizacionView.DataContext = cotizacionViewModel;
         PlantillaCotizacionView.DataContext = plantillaCotizacionViewModel;
         HistorialView.DataContext = historialViewModel;
+        _historialViewModel = historialViewModel;
         Loaded += async (_, _) =>
         {
             await empresaViewModel.InicializarAsync();
@@ -43,5 +46,15 @@ public partial class MainWindow : Window
             await plantillaCotizacionViewModel.InicializarAsync();
             await historialViewModel.InicializarAsync();
         };
+    }
+
+    private async void Pestanas_SelectionChanged(object sender, SelectionChangedEventArgs e)
+    {
+        if (e.AddedItems.Count == 0 || e.AddedItems[0] is not TabItem { Header: "Historial" })
+        {
+            return;
+        }
+
+        await _historialViewModel.RecargarAsync();
     }
 }

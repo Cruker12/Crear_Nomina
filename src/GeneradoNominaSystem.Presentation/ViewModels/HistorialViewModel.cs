@@ -5,6 +5,7 @@ using System.Windows.Input;
 using GeneradoNominaSystem.Application.DTOs;
 using GeneradoNominaSystem.Application.Interfaces;
 using GeneradoNominaSystem.Domain.Enums;
+using GeneradoNominaSystem.Domain.Interfaces.Services;
 using GeneradoNominaSystem.Presentation.Commands;
 
 namespace GeneradoNominaSystem.Presentation.ViewModels;
@@ -31,7 +32,10 @@ public sealed class HistorialViewModel : ViewModelBase
     private bool _esError;
     private bool _ocupado;
 
-    public HistorialViewModel(IHistorialService historial, IEmpresaService empresas)
+    public HistorialViewModel(
+        IHistorialService historial,
+        IEmpresaService empresas,
+        INotificadorDocumentos notificador)
     {
         _historial = historial;
         _empresas = empresas;
@@ -40,6 +44,8 @@ public sealed class HistorialViewModel : ViewModelBase
         AbrirDocumentoCommand = new RelayCommand(
             _ => AbrirDocumento(),
             _ => !Ocupado && DocumentoSeleccionado is not null);
+
+        notificador.DocumentoGenerado += async (_, _) => await RefrescarTrasDocumentoAsync();
     }
 
     public ObservableCollection<EmpresaDto> EmpresasLista
@@ -167,6 +173,22 @@ public sealed class HistorialViewModel : ViewModelBase
             EmpresaSeleccionada = EmpresasLista.FirstOrDefault(e => e.Activo)
                 ?? EmpresasLista.FirstOrDefault();
         });
+    }
+
+    /// <summary>
+    /// Recarga empresas y resultados. Se llama al entrar a la pestaña
+    /// y automáticamente cada vez que se genera un documento.
+    /// </summary>
+    public async Task RecargarAsync() => await InicializarAsync();
+
+    private async Task RefrescarTrasDocumentoAsync()
+    {
+        if (EmpresaSeleccionada is null)
+        {
+            return;
+        }
+
+        await BuscarAsync();
     }
 
     private async Task BuscarAsync()

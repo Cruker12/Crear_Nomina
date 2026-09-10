@@ -18,7 +18,7 @@
                    FontSize="22"
                    Margin="0,8" />
 
-        <TabControl Grid.Row="1">
+        <TabControl Grid.Row="1" x:Name="Pestanas" SelectionChanged="Pestanas_SelectionChanged">
             <TabItem Header="Empresas">
                 <views:EmpresaView x:Name="EmpresaView" />
             </TabItem>
