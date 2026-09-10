@@ -12,6 +12,9 @@ public static class DependencyInjection
         services.AddValidatorsFromAssembly(typeof(DependencyInjection).Assembly);
         services.AddScoped<IEmpresaService, EmpresaService>();
         services.AddScoped<IEmpleadoService, EmpleadoService>();
+        services.AddScoped<IConceptoNominaService, ConceptoNominaService>();
+        services.AddScoped<IPeriodoNominaService, PeriodoNominaService>();
+        services.AddScoped<INominaService, NominaService>();
 
         return services;
     }

@@ -10,6 +10,9 @@ public static class DependencyInjection
         services.AddSingleton<MainViewModel>();
         services.AddTransient<EmpresaViewModel>();
         services.AddTransient<EmpleadoViewModel>();
+        services.AddTransient<ConceptoViewModel>();
+        services.AddTransient<PeriodoViewModel>();
+        services.AddTransient<NominaViewModel>();
         services.AddSingleton<MainWindow>();
 
         return services;

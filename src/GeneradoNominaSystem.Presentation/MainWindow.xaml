@@ -25,6 +25,15 @@
             <TabItem Header="Empleados">
                 <views:EmpleadoView x:Name="EmpleadoView" />
             </TabItem>
+            <TabItem Header="Conceptos">
+                <views:ConceptoView x:Name="ConceptoView" />
+            </TabItem>
+            <TabItem Header="Periodos">
+                <views:PeriodoView x:Name="PeriodoView" />
+            </TabItem>
+            <TabItem Header="Nóminas">
+                <views:NominaView x:Name="NominaView" />
+            </TabItem>
         </TabControl>
     </Grid>
 </Window>
