@@ -92,6 +92,9 @@
             </GroupBox>
         </Grid>
 
-        <TextBlock Grid.Row="2" Text="{Binding Mensaje}" Margin="0,8,0,0" />
+        <StackPanel Grid.Row="2" Orientation="Horizontal" Margin="0,8,0,0">
+            <ProgressBar IsIndeterminate="True" Visibility="{Binding Ocupado, Converter={StaticResource BoolToVisibility}}" Width="100" Height="8" VerticalAlignment="Center" />
+            <TextBlock Text="{Binding Mensaje}" Style="{StaticResource MensajeStyle}" Margin="16,0,0,0" />
+        </StackPanel>
     </Grid>
 </UserControl>

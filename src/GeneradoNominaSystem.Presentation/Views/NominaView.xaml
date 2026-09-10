@@ -51,7 +51,7 @@
                     <DataGrid.Columns>
                         <DataGridTextColumn Header="Empleado" Binding="{Binding EmpleadoNombre}" Width="*" />
                         <DataGridTextColumn Header="Estado" Binding="{Binding Estado}" Width="90" />
-                        <DataGridTextColumn Header="Neto" Binding="{Binding TotalNeto}" Width="110" />
+                        <DataGridTextColumn Header="Neto" Binding="{Binding TotalNeto, StringFormat=N2}" Width="110" />
                     </DataGrid.Columns>
                 </DataGrid>
             </GroupBox>
@@ -69,7 +69,7 @@
                               Margin="0,0,0,8">
                         <DataGrid.Columns>
                             <DataGridTextColumn Header="Concepto" Binding="{Binding ConceptoNombre}" Width="*" />
-                            <DataGridTextColumn Header="Valor" Binding="{Binding ValorMonto}" Width="110" />
+                            <DataGridTextColumn Header="Valor" Binding="{Binding ValorMonto, StringFormat=N2}" Width="110" />
                         </DataGrid.Columns>
                     </DataGrid>
 
@@ -103,6 +103,9 @@
             </GroupBox>
         </Grid>
 
-        <TextBlock Grid.Row="2" Text="{Binding Mensaje}" Margin="0,8,0,0" />
+        <StackPanel Grid.Row="2" Orientation="Horizontal" Margin="0,8,0,0">
+            <ProgressBar IsIndeterminate="True" Visibility="{Binding Ocupado, Converter={StaticResource BoolToVisibility}}" Width="100" Height="8" VerticalAlignment="Center" />
+            <TextBlock Text="{Binding Mensaje}" Style="{StaticResource MensajeStyle}" Margin="16,0,0,0" />
+        </StackPanel>
     </Grid>
 </UserControl>

@@ -48,7 +48,7 @@
                             <DataGridTextColumn Header="Empleado" Binding="{Binding EmpleadoNombre}" Width="*" />
                             <DataGridTextColumn Header="Periodo" Binding="{Binding PeriodoNombre}" Width="150" />
                             <DataGridTextColumn Header="Estado" Binding="{Binding Estado}" Width="90" />
-                            <DataGridTextColumn Header="Neto" Binding="{Binding TotalNeto}" Width="110" />
+                            <DataGridTextColumn Header="Neto" Binding="{Binding TotalNeto, StringFormat=N2}" Width="110" />
                             <DataGridTextColumn Header="Creada" Binding="{Binding FechaCreacion, StringFormat=dd/MM/yyyy}" Width="100" />
                         </DataGrid.Columns>
                     </DataGrid>
@@ -74,7 +74,7 @@
                             <DataGridTextColumn Header="Número" Binding="{Binding NumeroCotizacion}" Width="130" />
                             <DataGridTextColumn Header="Cliente" Binding="{Binding ClienteNombre}" Width="*" />
                             <DataGridTextColumn Header="Estado" Binding="{Binding Estado}" Width="90" />
-                            <DataGridTextColumn Header="Total" Binding="{Binding TotalNeto}" Width="110" />
+                            <DataGridTextColumn Header="Total" Binding="{Binding TotalNeto, StringFormat=N2}" Width="110" />
                             <DataGridTextColumn Header="Emisión" Binding="{Binding FechaEmision, StringFormat=dd/MM/yyyy}" Width="100" />
                         </DataGrid.Columns>
                     </DataGrid>
@@ -115,6 +115,9 @@
             </TabItem>
         </TabControl>
 
-        <TextBlock Grid.Row="2" Text="{Binding Mensaje}" Margin="0,8,0,0" />
+        <StackPanel Grid.Row="2" Orientation="Horizontal" Margin="0,8,0,0">
+            <ProgressBar IsIndeterminate="True" Visibility="{Binding Ocupado, Converter={StaticResource BoolToVisibility}}" Width="100" Height="8" VerticalAlignment="Center" />
+            <TextBlock Text="{Binding Mensaje}" Style="{StaticResource MensajeStyle}" Margin="16,0,0,0" />
+        </StackPanel>
     </Grid>
 </UserControl>

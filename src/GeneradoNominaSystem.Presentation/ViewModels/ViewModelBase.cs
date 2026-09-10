@@ -1,5 +1,6 @@
 using System.ComponentModel;
 using System.Runtime.CompilerServices;
+using GeneradoNominaSystem.Presentation.Commands;
 
 namespace GeneradoNominaSystem.Presentation.ViewModels;
 
@@ -16,6 +17,7 @@ public abstract class ViewModelBase : INotifyPropertyChanged
 
         field = value;
         OnPropertyChanged(propertyName);
+        RelayCommand.SolicitarReevaluacion();
         return true;
     }
 

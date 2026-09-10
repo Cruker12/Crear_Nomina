@@ -64,7 +64,7 @@
                             <DataGridTextColumn Header="Número" Binding="{Binding NumeroCotizacion}" Width="130" />
                             <DataGridTextColumn Header="Cliente" Binding="{Binding ClienteNombre}" Width="*" />
                             <DataGridTextColumn Header="Estado" Binding="{Binding Estado}" Width="90" />
-                            <DataGridTextColumn Header="Total" Binding="{Binding TotalNeto}" Width="110" />
+                            <DataGridTextColumn Header="Total" Binding="{Binding TotalNeto, StringFormat=N2}" Width="110" />
                         </DataGrid.Columns>
                     </DataGrid>
                 </Grid>
@@ -85,8 +85,8 @@
                         <DataGrid.Columns>
                             <DataGridTextColumn Header="Descripción" Binding="{Binding Descripcion}" Width="*" />
                             <DataGridTextColumn Header="Cant." Binding="{Binding Cantidad}" Width="60" />
-                            <DataGridTextColumn Header="Precio" Binding="{Binding PrecioUnitarioMonto}" Width="100" />
-                            <DataGridTextColumn Header="Subtotal" Binding="{Binding Subtotal}" Width="110" />
+                            <DataGridTextColumn Header="Precio" Binding="{Binding PrecioUnitarioMonto, StringFormat=N2}" Width="100" />
+                            <DataGridTextColumn Header="Subtotal" Binding="{Binding Subtotal, StringFormat=N2}" Width="110" />
                         </DataGrid.Columns>
                     </DataGrid>
 
@@ -120,6 +120,9 @@
             </GroupBox>
         </Grid>
 
-        <TextBlock Grid.Row="2" Text="{Binding Mensaje}" Margin="0,8,0,0" />
+        <StackPanel Grid.Row="2" Orientation="Horizontal" Margin="0,8,0,0">
+            <ProgressBar IsIndeterminate="True" Visibility="{Binding Ocupado, Converter={StaticResource BoolToVisibility}}" Width="100" Height="8" VerticalAlignment="Center" />
+            <TextBlock Text="{Binding Mensaje}" Style="{StaticResource MensajeStyle}" Margin="16,0,0,0" />
+        </StackPanel>
     </Grid>
 </UserControl>
