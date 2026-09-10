@@ -1,4 +1,5 @@
 using System.Collections.ObjectModel;
+using System.IO;
 using System.Windows.Input;
 using GeneradoNominaSystem.Application.DTOs;
 using GeneradoNominaSystem.Application.Interfaces;
@@ -14,6 +15,7 @@ public sealed class NominaViewModel : ViewModelBase
     private readonly IPeriodoNominaService _periodos;
     private readonly IConceptoNominaService _conceptos;
     private readonly IPlantillaNominaService _plantillas;
+    private readonly IDocumentoService _documentos;
 
     private ObservableCollection<EmpresaDto> _empresasLista = new();
     private EmpresaDto? _empresaSeleccionada;
@@ -41,7 +43,8 @@ public sealed class NominaViewModel : ViewModelBase
         IEmpleadoService empleados,
         IPeriodoNominaService periodos,
         IConceptoNominaService conceptos,
-        IPlantillaNominaService plantillas)
+        IPlantillaNominaService plantillas,
+        IDocumentoService documentos)
     {
         _nominas = nominas;
         _empresas = empresas;
@@ -49,6 +52,7 @@ public sealed class NominaViewModel : ViewModelBase
         _periodos = periodos;
         _conceptos = conceptos;
         _plantillas = plantillas;
+        _documentos = documentos;
 
         RecargarCommand = new RelayCommand(async _ => await RecargarAsync(), _ => !Ocupado);
         CrearCommand = new RelayCommand(
@@ -71,6 +75,12 @@ public sealed class NominaViewModel : ViewModelBase
             _ => !Ocupado && Seleccionada is not null);
         AnularCommand = new RelayCommand(
             async _ => await AnularAsync(),
+            _ => !Ocupado && Seleccionada is not null);
+        ExportarPdfCommand = new RelayCommand(
+            async _ => await ExportarAsync(Domain.Enums.FormatoExportacion.Pdf),
+            _ => !Ocupado && Seleccionada is not null);
+        ExportarExcelCommand = new RelayCommand(
+            async _ => await ExportarAsync(Domain.Enums.FormatoExportacion.Excel),
             _ => !Ocupado && Seleccionada is not null);
     }
 
@@ -226,6 +236,10 @@ public sealed class NominaViewModel : ViewModelBase
     public ICommand PagarCommand { get; }
 
     public ICommand AnularCommand { get; }
+
+    public ICommand ExportarPdfCommand { get; }
+
+    public ICommand ExportarExcelCommand { get; }
 
     public async Task InicializarAsync() => await RecargarAsync();
 
@@ -399,6 +413,25 @@ public sealed class NominaViewModel : ViewModelBase
             await _nominas.AnularAsync(Seleccionada.Id, Motivo);
             await RefrescarSeleccionadaAsync();
             Informar("Nómina anulada.", esError: false);
+        });
+    }
+
+    private async Task ExportarAsync(Domain.Enums.FormatoExportacion formato)
+    {
+        if (Seleccionada is null)
+        {
+            return;
+        }
+
+        await EjecutarAsync(async () =>
+        {
+            var carpeta = Path.Combine(
+                Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments),
+                "GeneradoNominaSystem");
+            Directory.CreateDirectory(carpeta);
+
+            var documento = await _documentos.ExportarNominaAsync(Seleccionada.Id, formato, carpeta);
+            Informar($"Documento {documento.NumeroDocumento} guardado en {documento.RutaArchivo}.", esError: false);
         });
     }
 

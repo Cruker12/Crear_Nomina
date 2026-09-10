@@ -1,6 +1,8 @@
 using GeneradoNominaSystem.Domain.Interfaces;
 using GeneradoNominaSystem.Domain.Interfaces.Repositories;
+using GeneradoNominaSystem.Domain.Interfaces.Services;
 using GeneradoNominaSystem.Infrastructure.Data;
+using GeneradoNominaSystem.Infrastructure.Exportadores;
 using GeneradoNominaSystem.Infrastructure.Logging;
 using GeneradoNominaSystem.Infrastructure.Repositories;
 using Microsoft.EntityFrameworkCore;
@@ -49,6 +51,8 @@ public static class DependencyInjection
         services.AddScoped<IPlantillaCotizacionRepository, PlantillaCotizacionRepository>();
         services.AddScoped<IDocumentoRepository, DocumentoRepository>();
         services.AddScoped<IUnitOfWork, EfUnitOfWork>();
+        services.AddSingleton<IExportadorDocumento, ExportadorNominaPdf>();
+        services.AddSingleton<IExportadorDocumento, ExportadorNominaExcel>();
 
         return services;
     }

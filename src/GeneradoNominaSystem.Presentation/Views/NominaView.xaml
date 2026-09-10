@@ -95,6 +95,8 @@
                             <TextBox Text="{Binding Motivo, UpdateSourceTrigger=PropertyChanged}"
                                      Width="200" />
                             <Button Content="Anular" Command="{Binding AnularCommand}" Margin="8,0,0,0" Padding="12,2" />
+                            <Button Content="PDF" Command="{Binding ExportarPdfCommand}" Margin="8,0,0,0" Padding="12,2" />
+                            <Button Content="Excel" Command="{Binding ExportarExcelCommand}" Margin="8,0,0,0" Padding="12,2" />
                         </StackPanel>
                     </StackPanel>
                 </Grid>
