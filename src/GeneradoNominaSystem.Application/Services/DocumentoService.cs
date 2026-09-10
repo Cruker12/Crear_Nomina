@@ -13,6 +13,8 @@ namespace GeneradoNominaSystem.Application.Services;
 public sealed class DocumentoService : IDocumentoService
 {
     private readonly INominaRepository _nominas;
+    private readonly ICotizacionRepository _cotizaciones;
+    private readonly IProductoServicioRepository _productosServicios;
     private readonly IEmpresaRepository _empresas;
     private readonly IEmpleadoRepository _empleados;
     private readonly IPeriodoNominaRepository _periodos;
@@ -24,6 +26,8 @@ public sealed class DocumentoService : IDocumentoService
 
     public DocumentoService(
         INominaRepository nominas,
+        ICotizacionRepository cotizaciones,
+        IProductoServicioRepository productosServicios,
         IEmpresaRepository empresas,
         IEmpleadoRepository empleados,
         IPeriodoNominaRepository periodos,
@@ -34,6 +38,8 @@ public sealed class DocumentoService : IDocumentoService
         IEnumerable<IExportadorDocumento> exportadores)
     {
         _nominas = nominas;
+        _cotizaciones = cotizaciones;
+        _productosServicios = productosServicios;
         _empresas = empresas;
         _empleados = empleados;
         _periodos = periodos;
@@ -101,6 +107,57 @@ public sealed class DocumentoService : IDocumentoService
         return entidades.Select(Mapear).ToList();
     }
 
+    public async Task<DocumentoDto> ExportarCotizacionAsync(
+        Guid cotizacionId,
+        FormatoExportacion formato,
+        string carpetaDestino,
+        CancellationToken ct = default)
+    {
+        if (string.IsNullOrWhiteSpace(carpetaDestino))
+        {
+            throw new ReglaNegocioException("La carpeta de destino es obligatoria.");
+        }
+
+        var cotizacion = await _cotizaciones.ObtenerConDetallesAsync(cotizacionId, ct);
+        if (cotizacion is null)
+        {
+            throw new ReglaNegocioException("La cotización no existe.");
+        }
+
+        if (cotizacion.Detalles.Count == 0)
+        {
+            throw new ReglaNegocioException("La cotización no tiene detalles para exportar.");
+        }
+
+        var exportador = _exportadores.FirstOrDefault(e => e.Formato == formato);
+        if (exportador is null)
+        {
+            throw new ReglaNegocioException($"No hay exportador registrado para el formato {formato}.");
+        }
+
+        var modelo = await ConstruirModeloCotizacionAsync(cotizacion, ct);
+        var extension = formato == FormatoExportacion.Pdf ? "pdf" : "xlsx";
+        var ruta = Path.Combine(carpetaDestino, $"{Sanear(modelo.NumeroCotizacion)}.{extension}");
+
+        exportador.ExportarCotizacion(modelo, ruta);
+
+        var tamano = new FileInfo(ruta).Length;
+        var documento = new Documento(
+            cotizacion.EmpresaId,
+            TipoDocumentoSistema.Cotizacion,
+            cotizacion.Id,
+            modelo.NumeroCotizacion,
+            formato,
+            ruta,
+            tamano,
+            "Sistema");
+
+        await _documentos.AgregarAsync(documento, ct);
+        await _uow.GuardarCambiosAsync(ct);
+
+        return Mapear(documento);
+    }
+
     private async Task<ModeloDocumentoNomina> ConstruirModeloAsync(Nomina nomina, CancellationToken ct)
     {
         var empresa = await _empresas.ObtenerPorIdAsync(nomina.EmpresaId, ct);
@@ -140,6 +197,39 @@ public sealed class DocumentoService : IDocumentoService
             nomina.SubtotalDeducciones.Monto,
             nomina.TotalNeto.Monto,
             nomina.TotalNeto.Moneda);
+    }
+
+    private async Task<ModeloDocumentoCotizacion> ConstruirModeloCotizacionAsync(Cotizacion cotizacion, CancellationToken ct)
+    {
+        var empresa = await _empresas.ObtenerPorIdAsync(cotizacion.EmpresaId, ct);
+
+        var lineas = cotizacion.Detalles
+            .OrderBy(d => d.Orden)
+            .Select(d => new LineaDocumentoCotizacion(
+                d.Descripcion,
+                d.Cantidad,
+                d.PrecioUnitario.Monto,
+                d.DescuentoPorcentaje,
+                d.Subtotal.Monto,
+                d.Orden))
+            .ToList();
+
+        return new ModeloDocumentoCotizacion(
+            empresa?.RazonSocial ?? "Empresa",
+            empresa?.Nit ?? string.Empty,
+            empresa?.Direccion.DireccionCompleta,
+            empresa?.Telefono,
+            cotizacion.ClienteNombre,
+            cotizacion.ClienteDocumento,
+            cotizacion.NumeroCotizacion,
+            cotizacion.FechaEmision,
+            cotizacion.FechaVigencia,
+            cotizacion.Estado.ToString(),
+            lineas,
+            cotizacion.Subtotal.Monto,
+            cotizacion.TotalNeto.Monto,
+            cotizacion.Moneda,
+            cotizacion.Observaciones);
     }
 
     private static string Sanear(string nombre)

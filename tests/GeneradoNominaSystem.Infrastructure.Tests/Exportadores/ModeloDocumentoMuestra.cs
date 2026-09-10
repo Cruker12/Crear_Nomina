@@ -30,4 +30,28 @@ public static class ModeloDocumentoMuestra
             1840000m,
             "COP");
     }
+
+    public static ModeloDocumentoCotizacion CrearCotizacion()
+    {
+        return new ModeloDocumentoCotizacion(
+            "Empresa Test S.A.S.",
+            "900123456",
+            "Calle 1 # 2-3, Medellín",
+            "6041234567",
+            "Cliente Test",
+            "800111222",
+            "COT-2026-0001",
+            new DateTime(2026, 3, 1),
+            new DateTime(2026, 3, 31),
+            "Enviada",
+            new List<LineaDocumentoCotizacion>
+            {
+                new("Consultoría", 10m, 150000m, null, 1500000m, 1),
+                new("Licencia", 1m, 900000m, 10m, 810000m, 2),
+            },
+            2310000m,
+            2310000m,
+            "COP",
+            "Validez 15 días.");
+    }
 }

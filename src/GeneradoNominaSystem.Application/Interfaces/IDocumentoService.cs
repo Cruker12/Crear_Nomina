@@ -11,5 +11,11 @@ public interface IDocumentoService
         string carpetaDestino,
         CancellationToken ct = default);
 
+    Task<DocumentoDto> ExportarCotizacionAsync(
+        Guid cotizacionId,
+        FormatoExportacion formato,
+        string carpetaDestino,
+        CancellationToken ct = default);
+
     Task<IReadOnlyList<DocumentoDto>> ListarPorReferenciaAsync(Guid referenciaId, CancellationToken ct = default);
 }

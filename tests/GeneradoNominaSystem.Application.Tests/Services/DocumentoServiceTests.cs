@@ -15,6 +15,8 @@ namespace GeneradoNominaSystem.Application.Tests.Services;
 public class DocumentoServiceTests : IDisposable
 {
     private readonly Mock<INominaRepository> _nominas = new();
+    private readonly Mock<ICotizacionRepository> _cotizaciones = new();
+    private readonly Mock<IProductoServicioRepository> _productosServicios = new();
     private readonly Mock<IEmpresaRepository> _empresas = new();
     private readonly Mock<IEmpleadoRepository> _empleados = new();
     private readonly Mock<IPeriodoNominaRepository> _periodos = new();
@@ -77,6 +79,8 @@ public class DocumentoServiceTests : IDisposable
     {
         return new DocumentoService(
             _nominas.Object,
+            _cotizaciones.Object,
+            _productosServicios.Object,
             _empresas.Object,
             _empleados.Object,
             _periodos.Object,
@@ -144,6 +148,45 @@ public class DocumentoServiceTests : IDisposable
         await sut.ExportarNominaAsync(nomina.Id, FormatoExportacion.Pdf, _carpeta);
 
         _documentos.Verify(r => r.AgregarAsync(It.IsAny<Documento>(), It.IsAny<CancellationToken>()), Times.Exactly(2));
+    }
+
+    [Fact]
+    public async Task ExportarCotizacionAsync_ConDetalles_DeberiaGenerarYRegistrar()
+    {
+        var cotizacion = new Cotizacion(
+            _empresaId, "Cliente Test", "COT-2026-0001",
+            new DateTime(2026, 3, 1), new DateTime(2026, 3, 31));
+        cotizacion.AgregarDetalle(new DetalleCotizacion(
+            cotizacion.Id, "Consultoría", 2m, new Dinero(150000m, "COP"), 1));
+        _cotizaciones.Setup(r => r.ObtenerConDetallesAsync(cotizacion.Id, It.IsAny<CancellationToken>()))
+            .ReturnsAsync(cotizacion);
+        _empresas.Setup(r => r.ObtenerPorIdAsync(It.IsAny<Guid>(), It.IsAny<CancellationToken>()))
+            .ReturnsAsync(_empresa);
+        _exportador.Setup(e => e.ExportarCotizacion(It.IsAny<ModeloDocumentoCotizacion>(), It.IsAny<string>()))
+            .Callback<ModeloDocumentoCotizacion, string>((_, ruta) => File.WriteAllText(ruta, "dummy-xlsx"));
+        var sut = CrearSut();
+
+        var resultado = await sut.ExportarCotizacionAsync(cotizacion.Id, FormatoExportacion.Pdf, _carpeta);
+
+        resultado.NumeroDocumento.Should().Be("COT-2026-0001");
+        resultado.TamanoBytes.Should().BeGreaterThan(0);
+        File.Exists(resultado.RutaArchivo).Should().BeTrue();
+        _documentos.Verify(r => r.AgregarAsync(It.IsAny<Documento>(), It.IsAny<CancellationToken>()), Times.Once);
+    }
+
+    [Fact]
+    public async Task ExportarCotizacionAsync_SinDetalles_DeberiaLanzarReglaNegocio()
+    {
+        var cotizacion = new Cotizacion(
+            _empresaId, "Cliente Test", "COT-2026-0001",
+            new DateTime(2026, 3, 1), new DateTime(2026, 3, 31));
+        _cotizaciones.Setup(r => r.ObtenerConDetallesAsync(cotizacion.Id, It.IsAny<CancellationToken>()))
+            .ReturnsAsync(cotizacion);
+        var sut = CrearSut();
+
+        var accion = () => sut.ExportarCotizacionAsync(cotizacion.Id, FormatoExportacion.Pdf, _carpeta);
+
+        await accion.Should().ThrowAsync<ReglaNegocioException>();
     }
 
     public void Dispose()

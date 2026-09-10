@@ -31,16 +31,24 @@ public class ExportadorNominaPdfTests
     }
 
     [Fact]
-    public void ExportarCotizacion_DeberiaLanzarNotSupported()
+    public void ExportarCotizacion_ModeloValido_DeberiaGenerarPdf()
     {
         var sut = new ExportadorNominaPdf();
-        var modelo = new ModeloDocumentoCotizacion(
-            "E", "N", null, null, "C", null, "COT-1",
-            DateTime.Today, DateTime.Today, "Borrador",
-            new List<LineaDocumentoCotizacion>(), 0m, 0m, "COP", null);
+        var ruta = Path.Combine(Path.GetTempPath(), $"gns-cot-{Guid.NewGuid():N}.pdf");
 
-        var accion = () => sut.ExportarCotizacion(modelo, Path.GetTempPath());
+        try
+        {
+            sut.ExportarCotizacion(ModeloDocumentoMuestra.CrearCotizacion(), ruta);
 
-        accion.Should().Throw<NotSupportedException>();
+            File.Exists(ruta).Should().BeTrue();
+            new FileInfo(ruta).Length.Should().BeGreaterThan(0);
+        }
+        finally
+        {
+            if (File.Exists(ruta))
+            {
+                File.Delete(ruta);
+            }
+        }
     }
 }

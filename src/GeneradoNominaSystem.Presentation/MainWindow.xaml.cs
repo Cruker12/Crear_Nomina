@@ -14,7 +14,8 @@ public partial class MainWindow : Window
         NominaViewModel nominaViewModel,
         PlantillaViewModel plantillaViewModel,
         ProductoViewModel productoViewModel,
-        CotizacionViewModel cotizacionViewModel)
+        CotizacionViewModel cotizacionViewModel,
+        PlantillaCotizacionViewModel plantillaCotizacionViewModel)
     {
         InitializeComponent();
         DataContext = viewModel;
@@ -26,6 +27,7 @@ public partial class MainWindow : Window
         PlantillaView.DataContext = plantillaViewModel;
         ProductoView.DataContext = productoViewModel;
         CotizacionView.DataContext = cotizacionViewModel;
+        PlantillaCotizacionView.DataContext = plantillaCotizacionViewModel;
         Loaded += async (_, _) =>
         {
             await empresaViewModel.InicializarAsync();
@@ -36,6 +38,7 @@ public partial class MainWindow : Window
             await plantillaViewModel.InicializarAsync();
             await productoViewModel.InicializarAsync();
             await cotizacionViewModel.InicializarAsync();
+            await plantillaCotizacionViewModel.InicializarAsync();
         };
     }
 }

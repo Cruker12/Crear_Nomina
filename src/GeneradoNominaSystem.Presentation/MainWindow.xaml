@@ -43,6 +43,9 @@
             <TabItem Header="Cotizaciones">
                 <views:CotizacionView x:Name="CotizacionView" />
             </TabItem>
+            <TabItem Header="Plant. Cotiz.">
+                <views:PlantillaCotizacionView x:Name="PlantillaCotizacionView" />
+            </TabItem>
         </TabControl>
     </Grid>
 </Window>

@@ -1,4 +1,5 @@
 using System.Collections.ObjectModel;
+using System.IO;
 using System.Windows.Input;
 using GeneradoNominaSystem.Application.DTOs;
 using GeneradoNominaSystem.Application.Interfaces;
@@ -12,6 +13,8 @@ public sealed class CotizacionViewModel : ViewModelBase
     private readonly ICotizacionService _cotizaciones;
     private readonly IEmpresaService _empresas;
     private readonly IProductoServicioService _productos;
+    private readonly IPlantillaCotizacionService _plantillas;
+    private readonly IDocumentoService _documentos;
 
     private ObservableCollection<EmpresaDto> _empresasLista = new();
     private EmpresaDto? _empresaSeleccionada;
@@ -20,6 +23,8 @@ public sealed class CotizacionViewModel : ViewModelBase
     private CotizacionDto _edicion = new();
     private ObservableCollection<ProductoServicioDto> _productosLista = new();
     private ProductoServicioDto? _productoSeleccionado;
+    private ObservableCollection<PlantillaCotizacionDto> _plantillasLista = new();
+    private PlantillaCotizacionDto? _plantillaSeleccionada;
     private string _nuevaDescripcion = string.Empty;
     private decimal _nuevaCantidad = 1m;
     private decimal _nuevoPrecio;
@@ -31,11 +36,15 @@ public sealed class CotizacionViewModel : ViewModelBase
     public CotizacionViewModel(
         ICotizacionService cotizaciones,
         IEmpresaService empresas,
-        IProductoServicioService productos)
+        IProductoServicioService productos,
+        IPlantillaCotizacionService plantillas,
+        IDocumentoService documentos)
     {
         _cotizaciones = cotizaciones;
         _empresas = empresas;
         _productos = productos;
+        _plantillas = plantillas;
+        _documentos = documentos;
 
         RecargarCommand = new RelayCommand(async _ => await RecargarAsync(), _ => !Ocupado);
         CrearCommand = new RelayCommand(async _ => await CrearAsync(), _ => !Ocupado);
@@ -51,6 +60,15 @@ public sealed class CotizacionViewModel : ViewModelBase
             _ => !Ocupado && Seleccionada is not null);
         AceptarCommand = new RelayCommand(
             async _ => await CambiarEstadoAsync(EstadoCotizacion.Aceptada),
+            _ => !Ocupado && Seleccionada is not null);
+        AsignarPlantillaCommand = new RelayCommand(
+            async _ => await AsignarPlantillaAsync(),
+            _ => !Ocupado && Seleccionada is not null && PlantillaSeleccionada is not null);
+        ExportarPdfCommand = new RelayCommand(
+            async _ => await ExportarAsync(FormatoExportacion.Pdf),
+            _ => !Ocupado && Seleccionada is not null);
+        ExportarExcelCommand = new RelayCommand(
+            async _ => await ExportarAsync(FormatoExportacion.Excel),
             _ => !Ocupado && Seleccionada is not null);
     }
 
@@ -94,6 +112,18 @@ public sealed class CotizacionViewModel : ViewModelBase
     {
         get => _productosLista;
         private set => SetProperty(ref _productosLista, value);
+    }
+
+    public ObservableCollection<PlantillaCotizacionDto> PlantillasLista
+    {
+        get => _plantillasLista;
+        private set => SetProperty(ref _plantillasLista, value);
+    }
+
+    public PlantillaCotizacionDto? PlantillaSeleccionada
+    {
+        get => _plantillaSeleccionada;
+        set => SetProperty(ref _plantillaSeleccionada, value);
     }
 
     public ProductoServicioDto? ProductoSeleccionado
@@ -165,6 +195,12 @@ public sealed class CotizacionViewModel : ViewModelBase
 
     public ICommand AceptarCommand { get; }
 
+    public ICommand AsignarPlantillaCommand { get; }
+
+    public ICommand ExportarPdfCommand { get; }
+
+    public ICommand ExportarExcelCommand { get; }
+
     public async Task InicializarAsync() => await RecargarAsync();
 
     private void Nueva()
@@ -205,6 +241,9 @@ public sealed class CotizacionViewModel : ViewModelBase
             CotizacionesLista = new ObservableCollection<CotizacionDto>(cotizaciones);
             var productos = await _productos.ListarPorEmpresaAsync(EmpresaSeleccionada.Id);
             ProductosLista = new ObservableCollection<ProductoServicioDto>(productos.Where(p => p.Activo));
+            var plantillas = await _plantillas.ListarPorEmpresaAsync(EmpresaSeleccionada.Id);
+            PlantillasLista = new ObservableCollection<PlantillaCotizacionDto>(plantillas.Where(p => p.Activo));
+            PlantillaSeleccionada = PlantillasLista.FirstOrDefault();
             Edicion.EmpresaId = EmpresaSeleccionada.Id;
             Edicion.Moneda = "COP";
             Seleccionada = CotizacionesLista.FirstOrDefault();
@@ -222,6 +261,7 @@ public sealed class CotizacionViewModel : ViewModelBase
             }
 
             Edicion.EmpresaId = EmpresaSeleccionada.Id;
+            Edicion.PlantillaCotizacionId = PlantillaSeleccionada?.Id;
             var creada = await _cotizaciones.CrearAsync(Edicion);
             Informar($"Cotización {creada.NumeroCotizacion} creada.", esError: false);
             var lista = await _cotizaciones.ListarPorEmpresaAsync(EmpresaSeleccionada.Id);
@@ -257,8 +297,7 @@ public sealed class CotizacionViewModel : ViewModelBase
         });
     }
 
-    private async Task QuitarDetalleAsync(DetalleCotizacionDto? item)
-    {
+    private async Task QuitarDetalleAsync(DetalleCotizacionDto? item)    {
         if (Seleccionada is null || item is null)
         {
             return;
@@ -296,6 +335,46 @@ public sealed class CotizacionViewModel : ViewModelBase
             }
 
             Informar($"Cotización marcada como {nuevoEstado}.", esError: false);
+        });
+    }
+
+    private async Task AsignarPlantillaAsync()
+    {
+        if (Seleccionada is null || PlantillaSeleccionada is null)
+        {
+            return;
+        }
+
+        await EjecutarAsync(async () =>
+        {
+            await _cotizaciones.AsignarPlantillaAsync(Seleccionada.Id, PlantillaSeleccionada.Id);
+            var fresca = await _cotizaciones.ObtenerPorIdAsync(Seleccionada.Id);
+            if (fresca is not null)
+            {
+                Seleccionada = fresca;
+                SincronizarSeleccionada();
+            }
+
+            Informar($"Plantilla {PlantillaSeleccionada.Nombre} asignada.", esError: false);
+        });
+    }
+
+    private async Task ExportarAsync(FormatoExportacion formato)
+    {
+        if (Seleccionada is null)
+        {
+            return;
+        }
+
+        await EjecutarAsync(async () =>
+        {
+            var carpeta = Path.Combine(
+                Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments),
+                "GeneradoNominaSystem");
+            Directory.CreateDirectory(carpeta);
+
+            var documento = await _documentos.ExportarCotizacionAsync(Seleccionada.Id, formato, carpeta);
+            Informar($"Documento {documento.NumeroDocumento} guardado en {documento.RutaArchivo}.", esError: false);
         });
     }
 
