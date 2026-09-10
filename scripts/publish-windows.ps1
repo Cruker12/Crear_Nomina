@@ -8,9 +8,13 @@
     No requiere SDK ni runtime en la máquina destino.
 .EXAMPLE
     .\scripts\publish-windows.ps1
+.EXAMPLE
+    .\scripts\publish-windows.ps1 -Instalar
 #>
 [CmdletBinding()]
-param()
+param(
+    [switch]$Instalar
+)
 
 $ErrorActionPreference = "Stop"
 
@@ -33,4 +37,10 @@ if (-not (Test-Path -LiteralPath $exe)) {
 $tamanoMb = [math]::Round((Get-Item -LiteralPath $exe).Length / 1MB, 1)
 Write-Host "OK: $exe ($tamanoMb MB)" -ForegroundColor Green
 Write-Host "Salida completa: $salida"
-Write-Host "Para distribuir, copia la carpeta win-x64 completa (xcopy-deploy)."
+
+if ($Instalar) {
+    & (Join-Path $PSScriptRoot "instalar.ps1")
+}
+else {
+    Write-Host "Para instalar, ejecuta .\scripts\instalar.ps1 (crea accesos directos)."
+}
