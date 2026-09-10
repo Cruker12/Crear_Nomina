@@ -119,8 +119,8 @@ public sealed class NominaEndToEndTests : IDisposable
 
         await nominaService.AprobarAsync(nomina.Id);
 
-        var pdf = await documentoService.ExportarNominaAsync(nomina.Id, FormatoExportacion.Pdf, _carpetaDocs);
-        var excel = await documentoService.ExportarNominaAsync(nomina.Id, FormatoExportacion.Excel, _carpetaDocs);
+        var pdf = await documentoService.ExportarNominaAsync(nomina.Id, FormatoExportacion.Pdf, Path.Combine(_carpetaDocs, "nomina.pdf"));
+        var excel = await documentoService.ExportarNominaAsync(nomina.Id, FormatoExportacion.Excel, Path.Combine(_carpetaDocs, "nomina.xlsx"));
 
         File.Exists(pdf.RutaArchivo).Should().BeTrue();
         File.Exists(excel.RutaArchivo).Should().BeTrue();

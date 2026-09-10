@@ -1,5 +1,6 @@
 using GeneradoNominaSystem.Application.DTOs;
 using GeneradoNominaSystem.Application.Interfaces;
+using GeneradoNominaSystem.Domain.Comun;
 using GeneradoNominaSystem.Domain.Documentos;
 using GeneradoNominaSystem.Domain.Entities;
 using GeneradoNominaSystem.Domain.Enums;
@@ -53,12 +54,12 @@ public sealed class DocumentoService : IDocumentoService
     public async Task<DocumentoDto> ExportarNominaAsync(
         Guid nominaId,
         FormatoExportacion formato,
-        string carpetaDestino,
+        string rutaDestino,
         CancellationToken ct = default)
     {
-        if (string.IsNullOrWhiteSpace(carpetaDestino))
+        if (string.IsNullOrWhiteSpace(rutaDestino))
         {
-            throw new ReglaNegocioException("La carpeta de destino es obligatoria.");
+            throw new ReglaNegocioException("La ruta de destino es obligatoria.");
         }
 
         var nomina = await _nominas.ObtenerConDetallesAsync(nominaId, ct);
@@ -80,7 +81,7 @@ public sealed class DocumentoService : IDocumentoService
 
         var modelo = await ConstruirModeloAsync(nomina, ct);
         var extension = formato == FormatoExportacion.Pdf ? "pdf" : "xlsx";
-        var ruta = ResolverRutaUnica(carpetaDestino, Sanear(modelo.NumeroDocumento), extension);
+        var ruta = ResolverRutaUnica(rutaDestino, extension);
 
         exportador.ExportarNomina(modelo, ruta);
 
@@ -116,12 +117,12 @@ public sealed class DocumentoService : IDocumentoService
     public async Task<DocumentoDto> ExportarCotizacionAsync(
         Guid cotizacionId,
         FormatoExportacion formato,
-        string carpetaDestino,
+        string rutaDestino,
         CancellationToken ct = default)
     {
-        if (string.IsNullOrWhiteSpace(carpetaDestino))
+        if (string.IsNullOrWhiteSpace(rutaDestino))
         {
-            throw new ReglaNegocioException("La carpeta de destino es obligatoria.");
+            throw new ReglaNegocioException("La ruta de destino es obligatoria.");
         }
 
         var cotizacion = await _cotizaciones.ObtenerConDetallesAsync(cotizacionId, ct);
@@ -143,7 +144,7 @@ public sealed class DocumentoService : IDocumentoService
 
         var modelo = await ConstruirModeloCotizacionAsync(cotizacion, ct);
         var extension = formato == FormatoExportacion.Pdf ? "pdf" : "xlsx";
-        var ruta = ResolverRutaUnica(carpetaDestino, Sanear(modelo.NumeroCotizacion), extension);
+        var ruta = ResolverRutaUnica(rutaDestino, extension);
 
         exportador.ExportarCotizacion(modelo, ruta);
 
@@ -238,29 +239,40 @@ public sealed class DocumentoService : IDocumentoService
             cotizacion.Observaciones);
     }
 
-    private static string Sanear(string nombre)
+    /// <summary>
+    /// Respeta el nombre elegido por el usuario; si el archivo ya existe,
+    /// agrega sufijo _2, _3, ... Crea el directorio si no existe.
+    /// </summary>
+    private static string ResolverRutaUnica(string rutaDeseada, string extension)
     {
-        foreach (var invalido in Path.GetInvalidFileNameChars())
+        var directorioDeseado = Path.GetDirectoryName(rutaDeseada);
+        var nombreSaneado = NombresArchivos.Sanear(Path.GetFileName(rutaDeseada));
+        var combinada = string.IsNullOrWhiteSpace(directorioDeseado)
+            ? nombreSaneado
+            : Path.Combine(directorioDeseado, nombreSaneado);
+        var ruta = Path.GetFullPath(Path.ChangeExtension(combinada, extension));
+        var directorio = Path.GetDirectoryName(ruta);
+        if (!string.IsNullOrWhiteSpace(directorio))
         {
-            nombre = nombre.Replace(invalido, '_');
+            Directory.CreateDirectory(directorio);
         }
 
-        return nombre;
-    }
-
-    private static string ResolverRutaUnica(string carpeta, string baseNombre, string extension)
-    {
-        Directory.CreateDirectory(carpeta);
-        var sello = DateTime.UtcNow.ToString("yyyyMMddHHmmss");
-        var ruta = Path.Combine(carpeta, $"{baseNombre}_{sello}.{extension}");
-        var contador = 2;
-        while (File.Exists(ruta))
+        if (!File.Exists(ruta))
         {
-            ruta = Path.Combine(carpeta, $"{baseNombre}_{sello}_{contador}.{extension}");
+            return ruta;
+        }
+
+        var baseNombre = Path.GetFileNameWithoutExtension(ruta);
+        var contador = 2;
+        string candidata;
+        do
+        {
+            candidata = Path.Combine(directorio!, $"{baseNombre}_{contador}.{extension}");
             contador++;
         }
+        while (File.Exists(candidata));
 
-        return ruta;
+        return candidata;
     }
 
     private static DocumentoDto Mapear(Documento d)

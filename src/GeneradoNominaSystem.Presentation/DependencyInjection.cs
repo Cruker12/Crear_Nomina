@@ -1,3 +1,5 @@
+using GeneradoNominaSystem.Domain.Interfaces.Services;
+using GeneradoNominaSystem.Presentation.Services;
 using GeneradoNominaSystem.Presentation.ViewModels;
 using Microsoft.Extensions.DependencyInjection;
 
@@ -18,6 +20,7 @@ public static class DependencyInjection
         services.AddTransient<CotizacionViewModel>();
         services.AddTransient<PlantillaCotizacionViewModel>();
         services.AddTransient<HistorialViewModel>();
+        services.AddSingleton<IDialogoGuardarArchivo, DialogoGuardarArchivo>();
         services.AddSingleton<MainWindow>();
 
         return services;

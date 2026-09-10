@@ -3,7 +3,9 @@ using System.IO;
 using System.Windows.Input;
 using GeneradoNominaSystem.Application.DTOs;
 using GeneradoNominaSystem.Application.Interfaces;
+using GeneradoNominaSystem.Domain.Comun;
 using GeneradoNominaSystem.Domain.Enums;
+using GeneradoNominaSystem.Domain.Interfaces.Services;
 using GeneradoNominaSystem.Presentation.Commands;
 
 namespace GeneradoNominaSystem.Presentation.ViewModels;
@@ -15,6 +17,7 @@ public sealed class CotizacionViewModel : ViewModelBase
     private readonly IProductoServicioService _productos;
     private readonly IPlantillaCotizacionService _plantillas;
     private readonly IDocumentoService _documentos;
+    private readonly IDialogoGuardarArchivo _dialogos;
 
     private ObservableCollection<EmpresaDto> _empresasLista = new();
     private EmpresaDto? _empresaSeleccionada;
@@ -38,13 +41,15 @@ public sealed class CotizacionViewModel : ViewModelBase
         IEmpresaService empresas,
         IProductoServicioService productos,
         IPlantillaCotizacionService plantillas,
-        IDocumentoService documentos)
+        IDocumentoService documentos,
+        IDialogoGuardarArchivo dialogos)
     {
         _cotizaciones = cotizaciones;
         _empresas = empresas;
         _productos = productos;
         _plantillas = plantillas;
         _documentos = documentos;
+        _dialogos = dialogos;
 
         RecargarCommand = new RelayCommand(async _ => await RecargarAsync(), _ => !Ocupado);
         CrearCommand = new RelayCommand(async _ => await CrearAsync(), _ => !Ocupado);
@@ -366,16 +371,33 @@ public sealed class CotizacionViewModel : ViewModelBase
             return;
         }
 
+        var ruta = PedirRutaDestino(_dialogos, formato, Seleccionada.NumeroCotizacion);
+        if (ruta is null)
+        {
+            return;
+        }
+
         await EjecutarAsync(async () =>
         {
-            var carpeta = Path.Combine(
-                Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments),
-                "GeneradoNominaSystem");
-            Directory.CreateDirectory(carpeta);
-
-            var documento = await _documentos.ExportarCotizacionAsync(Seleccionada.Id, formato, carpeta);
+            var documento = await _documentos.ExportarCotizacionAsync(Seleccionada.Id, formato, ruta);
             Informar($"Documento {documento.NumeroDocumento} guardado en {documento.RutaArchivo}.", esError: false);
         });
+    }
+
+    private static string? PedirRutaDestino(
+        IDialogoGuardarArchivo dialogos,
+        FormatoExportacion formato,
+        string nombreSugerido)
+    {
+        var esPdf = formato == FormatoExportacion.Pdf;
+        return dialogos.PedirRutaDestino(
+            "Guardar documento",
+            esPdf ? "Documento PDF (*.pdf)|*.pdf" : "Libro de Excel (*.xlsx)|*.xlsx",
+            esPdf ? "pdf" : "xlsx",
+            NombresArchivos.Sanear(nombreSugerido),
+            Path.Combine(
+                Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments),
+                "GeneradoNominaSystem"));
     }
 
     private void SincronizarSeleccionada()

@@ -114,7 +114,7 @@ public class DocumentoServiceTests : IDisposable
         ConfigurarComunes(nomina);
         var sut = CrearSut();
 
-        var resultado = await sut.ExportarNominaAsync(nomina.Id, FormatoExportacion.Pdf, _carpeta);
+        var resultado = await sut.ExportarNominaAsync(nomina.Id, FormatoExportacion.Pdf, Path.Combine(_carpeta, "nomina.pdf"));
 
         resultado.NumeroDocumento.Should().Be("NOM-2026-0001");
         resultado.TamanoBytes.Should().BeGreaterThan(0);
@@ -131,7 +131,7 @@ public class DocumentoServiceTests : IDisposable
             .ReturnsAsync(nomina);
         var sut = CrearSut();
 
-        var accion = () => sut.ExportarNominaAsync(nomina.Id, FormatoExportacion.Pdf, _carpeta);
+        var accion = () => sut.ExportarNominaAsync(nomina.Id, FormatoExportacion.Pdf, Path.Combine(_carpeta, "nomina.pdf"));
 
         await accion.Should().ThrowAsync<ReglaNegocioException>();
         _exportador.Verify(e => e.ExportarNomina(It.IsAny<ModeloDocumentoNomina>(), It.IsAny<string>()), Times.Never);
@@ -144,13 +144,27 @@ public class DocumentoServiceTests : IDisposable
         ConfigurarComunes(nomina);
         var sut = CrearSut();
 
-        var primero = await sut.ExportarNominaAsync(nomina.Id, FormatoExportacion.Pdf, _carpeta);
-        var segundo = await sut.ExportarNominaAsync(nomina.Id, FormatoExportacion.Pdf, _carpeta);
+        var primero = await sut.ExportarNominaAsync(nomina.Id, FormatoExportacion.Pdf, Path.Combine(_carpeta, "nomina.pdf"));
+        var segundo = await sut.ExportarNominaAsync(nomina.Id, FormatoExportacion.Pdf, Path.Combine(_carpeta, "nomina.pdf"));
 
         _documentos.Verify(r => r.AgregarAsync(It.IsAny<Documento>(), It.IsAny<CancellationToken>()), Times.Exactly(2));
         primero.RutaArchivo.Should().NotBe(segundo.RutaArchivo);
         File.Exists(primero.RutaArchivo).Should().BeTrue();
         File.Exists(segundo.RutaArchivo).Should().BeTrue();
+    }
+
+    [Fact]
+    public async Task ExportarNominaAsync_RutaElegida_DeberiaRespetarNombreYExtension()
+    {
+        var nomina = CrearNominaCalculada(_empresaId, _empleado.Id, _periodo.Id, _salario.Id);
+        ConfigurarComunes(nomina);
+        var sut = CrearSut();
+
+        var resultado = await sut.ExportarNominaAsync(
+            nomina.Id, FormatoExportacion.Pdf, Path.Combine(_carpeta, "Mi Nomina"));
+
+        resultado.RutaArchivo.Should().EndWith("Mi Nomina.pdf");
+        File.Exists(resultado.RutaArchivo).Should().BeTrue();
     }
 
     [Fact]
@@ -169,7 +183,7 @@ public class DocumentoServiceTests : IDisposable
             .Callback<ModeloDocumentoCotizacion, string>((_, ruta) => File.WriteAllText(ruta, "dummy-xlsx"));
         var sut = CrearSut();
 
-        var resultado = await sut.ExportarCotizacionAsync(cotizacion.Id, FormatoExportacion.Pdf, _carpeta);
+        var resultado = await sut.ExportarCotizacionAsync(cotizacion.Id, FormatoExportacion.Pdf, Path.Combine(_carpeta, "cotizacion.pdf"));
 
         resultado.NumeroDocumento.Should().Be("COT-2026-0001");
         resultado.TamanoBytes.Should().BeGreaterThan(0);
@@ -187,7 +201,7 @@ public class DocumentoServiceTests : IDisposable
             .ReturnsAsync(cotizacion);
         var sut = CrearSut();
 
-        var accion = () => sut.ExportarCotizacionAsync(cotizacion.Id, FormatoExportacion.Pdf, _carpeta);
+        var accion = () => sut.ExportarCotizacionAsync(cotizacion.Id, FormatoExportacion.Pdf, Path.Combine(_carpeta, "cotizacion.pdf"));
 
         await accion.Should().ThrowAsync<ReglaNegocioException>();
     }

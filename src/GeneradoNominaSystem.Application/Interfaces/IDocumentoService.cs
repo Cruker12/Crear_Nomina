@@ -8,13 +8,13 @@ public interface IDocumentoService
     Task<DocumentoDto> ExportarNominaAsync(
         Guid nominaId,
         FormatoExportacion formato,
-        string carpetaDestino,
+        string rutaDestino,
         CancellationToken ct = default);
 
     Task<DocumentoDto> ExportarCotizacionAsync(
         Guid cotizacionId,
         FormatoExportacion formato,
-        string carpetaDestino,
+        string rutaDestino,
         CancellationToken ct = default);
 
     Task<IReadOnlyList<DocumentoDto>> ListarPorReferenciaAsync(Guid referenciaId, CancellationToken ct = default);

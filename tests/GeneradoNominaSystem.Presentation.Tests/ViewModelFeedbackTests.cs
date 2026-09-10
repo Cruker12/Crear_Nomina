@@ -1,8 +1,10 @@
 using System.Diagnostics;
+using System.IO;
 using FluentAssertions;
 using GeneradoNominaSystem.Application.DTOs;
 using GeneradoNominaSystem.Application.Interfaces;
 using GeneradoNominaSystem.Domain.Exceptions;
+using GeneradoNominaSystem.Domain.Interfaces.Services;
 using GeneradoNominaSystem.Presentation.Commands;
 using GeneradoNominaSystem.Presentation.ViewModels;
 using Moq;
@@ -45,6 +47,9 @@ public class ViewModelFeedbackTests
         var documentos = new Mock<IDocumentoService>();
         documentos.Setup(d => d.ExportarNominaAsync(It.IsAny<Guid>(), It.IsAny<Domain.Enums.FormatoExportacion>(), It.IsAny<string>(), It.IsAny<CancellationToken>()))
             .ThrowsAsync(new ReglaNegocioException("Solo se pueden exportar nóminas calculadas."));
+        var dialogos = new Mock<IDialogoGuardarArchivo>();
+        dialogos.Setup(d => d.PedirRutaDestino(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<string>(), It.IsAny<string>(), It.IsAny<string>()))
+            .Returns(Path.Combine(Path.GetTempPath(), "test-nomina.pdf"));
         var vm = new NominaViewModel(
             Mock.Of<INominaService>(),
             Mock.Of<IEmpresaService>(),
@@ -52,7 +57,8 @@ public class ViewModelFeedbackTests
             Mock.Of<IPeriodoNominaService>(),
             Mock.Of<IConceptoNominaService>(),
             Mock.Of<IPlantillaNominaService>(),
-            documentos.Object);
+            documentos.Object,
+            dialogos.Object);
         vm.Seleccionada = new NominaDto { Id = Guid.NewGuid() };
 
         vm.ExportarPdfCommand.Execute(null);
