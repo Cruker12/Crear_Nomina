@@ -157,7 +157,7 @@ public sealed class CotizacionService : ICotizacionService
             descuentoPorcentaje);
 
         cotizacion.AgregarDetalle(detalle);
-        _cotizaciones.Actualizar(cotizacion);
+        await _cotizaciones.AgregarDetalleAsync(detalle, ct);
         await _uow.GuardarCambiosAsync(ct);
 
         var recargada = await _cotizaciones.ObtenerConDetallesAsync(cotizacion.Id, ct);
@@ -173,7 +173,7 @@ public sealed class CotizacionService : ICotizacionService
         }
 
         cotizacion.RemoverDetalle(detalleId);
-        _cotizaciones.Actualizar(cotizacion);
+        // Sin Actualizar(): la cotización está tracked; EF detecta el hijo eliminado.
         await _uow.GuardarCambiosAsync(ct);
     }
 

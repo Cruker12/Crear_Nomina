@@ -102,8 +102,9 @@ public sealed class PlantillaNominaService : IPlantillaNominaService
             valorPorDefecto = new Dinero(valorPorDefectoMonto.Value, valorPorDefectoMoneda);
         }
 
-        plantilla.AgregarConcepto(new PlantillaConcepto(plantilla.Id, conceptoId, orden, obligatorio, valorPorDefecto));
-        _plantillas.Actualizar(plantilla);
+        var nuevo = new PlantillaConcepto(plantilla.Id, conceptoId, orden, obligatorio, valorPorDefecto);
+        plantilla.AgregarConcepto(nuevo);
+        await _plantillas.AgregarConceptoAsync(nuevo, ct);
         await _uow.GuardarCambiosAsync(ct);
 
         var recargada = await _plantillas.ObtenerConConceptosAsync(plantilla.Id, ct);
@@ -119,7 +120,7 @@ public sealed class PlantillaNominaService : IPlantillaNominaService
         }
 
         plantilla.RemoverConcepto(conceptoId);
-        _plantillas.Actualizar(plantilla);
+        // Sin Actualizar(): la plantilla está tracked; EF detecta el hijo eliminado.
         await _uow.GuardarCambiosAsync(ct);
     }
 

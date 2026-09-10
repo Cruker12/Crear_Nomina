@@ -33,4 +33,9 @@ public sealed class NominaRepository : Repository<Nomina>, INominaRepository
             .Include(n => n.Detalles)
             .FirstOrDefaultAsync(n => n.Id == id, ct);
     }
+
+    public async Task AgregarDetalleAsync(DetalleNomina detalle, CancellationToken ct = default)
+    {
+        await Context.Set<DetalleNomina>().AddAsync(detalle, ct);
+    }
 }

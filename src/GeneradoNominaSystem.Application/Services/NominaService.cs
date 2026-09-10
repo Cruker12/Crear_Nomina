@@ -149,10 +149,11 @@ public sealed class NominaService : INominaService
             }
 
             var valor = pc.ValorPorDefecto ?? Dinero.Cero(moneda);
-            nomina.AgregarDetalle(new DetalleNomina(nomina.Id, concepto.Id, valor, pc.Orden));
+            var nuevo = new DetalleNomina(nomina.Id, concepto.Id, valor, pc.Orden);
+            nomina.AgregarDetalle(nuevo);
+            await _nominas.AgregarDetalleAsync(nuevo, ct);
         }
 
-        _nominas.Actualizar(nomina);
         await _uow.GuardarCambiosAsync(ct);
 
         var recargada = await _nominas.ObtenerConDetallesAsync(nomina.Id, ct);
@@ -205,7 +206,7 @@ public sealed class NominaService : INominaService
             descripcion);
 
         nomina.AgregarDetalle(detalle);
-        _nominas.Actualizar(nomina);
+        await _nominas.AgregarDetalleAsync(detalle, ct);
         await _uow.GuardarCambiosAsync(ct);
 
         var recargada = await _nominas.ObtenerConDetallesAsync(nomina.Id, ct);

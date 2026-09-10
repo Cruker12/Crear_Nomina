@@ -11,4 +11,6 @@ public interface INominaRepository : IRepository<Nomina>
     Task<IReadOnlyList<Nomina>> ListarPorEmpresaAsync(Guid empresaId, CancellationToken ct = default);
 
     Task<Nomina?> ObtenerConDetallesAsync(Guid id, CancellationToken ct = default);
+
+    Task AgregarDetalleAsync(DetalleNomina detalle, CancellationToken ct = default);
 }

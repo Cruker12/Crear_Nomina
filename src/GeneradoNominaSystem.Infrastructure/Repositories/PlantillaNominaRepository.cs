@@ -23,4 +23,9 @@ public sealed class PlantillaNominaRepository : Repository<PlantillaNomina>, IPl
             .Include(p => p.Conceptos)
             .FirstOrDefaultAsync(p => p.Id == id, ct);
     }
+
+    public async Task AgregarConceptoAsync(PlantillaConcepto concepto, CancellationToken ct = default)
+    {
+        await Context.Set<PlantillaConcepto>().AddAsync(concepto, ct);
+    }
 }

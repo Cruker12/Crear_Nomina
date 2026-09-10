@@ -29,4 +29,9 @@ public sealed class CotizacionRepository : Repository<Cotizacion>, ICotizacionRe
             .Include(c => c.Detalles)
             .FirstOrDefaultAsync(c => c.Id == id, ct);
     }
+
+    public async Task AgregarDetalleAsync(DetalleCotizacion detalle, CancellationToken ct = default)
+    {
+        await Context.Set<DetalleCotizacion>().AddAsync(detalle, ct);
+    }
 }
