@@ -49,9 +49,9 @@
                                 <TextBlock Text="Vigencia" />
                                 <DatePicker SelectedDate="{Binding FechaVigencia}" />
                             </StackPanel>
-                            <StackPanel Width="*">
+                            <StackPanel>
                                 <TextBlock Text="Observaciones" />
-                                <TextBox Text="{Binding Observaciones, UpdateSourceTrigger=PropertyChanged}" />
+                                <TextBox Text="{Binding Observaciones, UpdateSourceTrigger=PropertyChanged}" MinWidth="200" />
                             </StackPanel>
                         </StackPanel>
                     </StackPanel>
