@@ -1,5 +1,6 @@
 using FluentValidation;
 using GeneradoNominaSystem.Application.DTOs;
+using GeneradoNominaSystem.Domain.Comun;
 
 namespace GeneradoNominaSystem.Application.Validators;
 
@@ -10,7 +11,8 @@ public sealed class CotizacionValidator : AbstractValidator<CotizacionDto>
         RuleFor(x => x.EmpresaId).NotEmpty();
         RuleFor(x => x.ClienteNombre).NotEmpty().MaximumLength(250);
         RuleFor(x => x.ClienteDocumento).MaximumLength(50);
-        RuleFor(x => x.ClienteEmail).MaximumLength(200).EmailAddress().When(x => !string.IsNullOrWhiteSpace(x.ClienteEmail));
+        RuleFor(x => x.ClienteEmail).MaximumLength(200).EmailAddress()
+            .When(x => !string.IsNullOrWhiteSpace(x.ClienteEmail) && !DatoDesconocido.EsDesconocido(x.ClienteEmail));
         RuleFor(x => x.ClienteTelefono).MaximumLength(50);
         RuleFor(x => x.FechaVigencia)
             .GreaterThanOrEqualTo(x => x.FechaEmision)

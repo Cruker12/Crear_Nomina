@@ -51,4 +51,32 @@ public class EmpresaValidatorTests
 
         resultado.IsValid.Should().BeFalse();
     }
+
+    [Theory]
+    [InlineData("NN")]
+    [InlineData("nn")]
+    public async Task Validate_EmailDesconocido_DeberiaSerValido(string email)
+    {
+        var dto = CrearDtoValido();
+        dto.Email = email;
+
+        var resultado = await _sut.ValidateAsync(dto);
+
+        resultado.IsValid.Should().BeTrue();
+    }
+
+    [Fact]
+    public async Task Validate_CamposDesconocidos_DeberiaSerValido()
+    {
+        var dto = CrearDtoValido();
+        dto.RazonSocial = "NN";
+        dto.NombreComercial = "NN";
+        dto.DireccionCompleta = "NN";
+        dto.Ciudad = "NN";
+        dto.Departamento = "NN";
+
+        var resultado = await _sut.ValidateAsync(dto);
+
+        resultado.IsValid.Should().BeTrue();
+    }
 }

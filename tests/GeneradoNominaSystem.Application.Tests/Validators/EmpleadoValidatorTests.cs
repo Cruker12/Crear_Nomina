@@ -63,4 +63,31 @@ public class EmpleadoValidatorTests
 
         resultado.IsValid.Should().BeFalse();
     }
+
+    [Theory]
+    [InlineData("NN")]
+    [InlineData("nn")]
+    [InlineData(" Nn ")]
+    public async Task Validate_EmailDesconocido_DeberiaSerValido(string email)
+    {
+        var dto = CrearDtoValido();
+        dto.Email = email;
+
+        var resultado = await _sut.ValidateAsync(dto);
+
+        resultado.IsValid.Should().BeTrue();
+    }
+
+    [Fact]
+    public async Task Validate_NombresDesconocido_DeberiaSerValido()
+    {
+        var dto = CrearDtoValido();
+        dto.Nombres = "NN";
+        dto.Apellidos = "NN";
+        dto.Cargo = "NN";
+
+        var resultado = await _sut.ValidateAsync(dto);
+
+        resultado.IsValid.Should().BeTrue();
+    }
 }

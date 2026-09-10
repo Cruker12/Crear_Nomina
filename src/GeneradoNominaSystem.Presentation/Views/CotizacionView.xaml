@@ -43,7 +43,7 @@
                     </Grid.RowDefinitions>
                     <StackPanel DataContext="{Binding Edicion}" Margin="0,0,0,8">
                         <TextBlock Text="Cliente" />
-                        <TextBox Text="{Binding ClienteNombre, UpdateSourceTrigger=PropertyChanged}" Margin="0,0,0,4" />
+                        <TextBox Text="{Binding ClienteNombre, UpdateSourceTrigger=PropertyChanged}" ToolTip="Escribe NN si no tienes este dato" Margin="0,0,0,4" />
                         <StackPanel Orientation="Horizontal">
                             <StackPanel Width="220" Margin="0,0,8,0">
                                 <TextBlock Text="Vigencia" />
@@ -51,7 +51,7 @@
                             </StackPanel>
                             <StackPanel>
                                 <TextBlock Text="Observaciones" />
-                                <TextBox Text="{Binding Observaciones, UpdateSourceTrigger=PropertyChanged}" MinWidth="200" />
+                                <TextBox Text="{Binding Observaciones, UpdateSourceTrigger=PropertyChanged}" ToolTip="Escribe NN si no tienes este dato" MinWidth="200" />
                             </StackPanel>
                         </StackPanel>
                     </StackPanel>

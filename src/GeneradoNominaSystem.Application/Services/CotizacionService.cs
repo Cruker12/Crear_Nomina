@@ -1,6 +1,7 @@
 using FluentValidation;
 using GeneradoNominaSystem.Application.DTOs;
 using GeneradoNominaSystem.Application.Interfaces;
+using GeneradoNominaSystem.Domain.Comun;
 using GeneradoNominaSystem.Domain.Entities;
 using GeneradoNominaSystem.Domain.Enums;
 using GeneradoNominaSystem.Domain.Exceptions;
@@ -63,6 +64,12 @@ public sealed class CotizacionService : ICotizacionService
 
     public async Task<CotizacionDto> CrearAsync(CotizacionDto dto, CancellationToken ct = default)
     {
+        dto.ClienteNombre = DatoDesconocido.Normalizar(dto.ClienteNombre) ?? string.Empty;
+        dto.ClienteDocumento = DatoDesconocido.Normalizar(dto.ClienteDocumento);
+        dto.ClienteEmail = DatoDesconocido.Normalizar(dto.ClienteEmail);
+        dto.ClienteTelefono = DatoDesconocido.Normalizar(dto.ClienteTelefono);
+        dto.Observaciones = DatoDesconocido.Normalizar(dto.Observaciones);
+
         var resultado = await _validator.ValidateAsync(dto, ct);
         if (!resultado.IsValid)
         {

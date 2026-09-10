@@ -1,6 +1,7 @@
 using FluentValidation;
 using GeneradoNominaSystem.Application.DTOs;
 using GeneradoNominaSystem.Application.Interfaces;
+using GeneradoNominaSystem.Domain.Comun;
 using GeneradoNominaSystem.Domain.Entities;
 using GeneradoNominaSystem.Domain.Exceptions;
 using GeneradoNominaSystem.Domain.Interfaces;
@@ -42,6 +43,7 @@ public sealed class EmpresaService : IEmpresaService
 
     public async Task<EmpresaDto> CrearAsync(EmpresaDto dto, CancellationToken ct = default)
     {
+        NormalizarDesconocidos(dto);
         await ValidarAsync(dto, ct);
 
         var existente = await _empresas.ObtenerPorNitAsync(dto.Nit.Trim(), ct);
@@ -59,6 +61,7 @@ public sealed class EmpresaService : IEmpresaService
 
     public async Task<EmpresaDto> ActualizarAsync(EmpresaDto dto, CancellationToken ct = default)
     {
+        NormalizarDesconocidos(dto);
         await ValidarAsync(dto, ct);
 
         var entidad = await _empresas.ObtenerPorIdAsync(dto.Id, ct);
@@ -135,6 +138,23 @@ public sealed class EmpresaService : IEmpresaService
             var errores = string.Join("; ", resultado.Errors.Select(e => e.ErrorMessage));
             throw new ValidationException($"Datos de empresa inválidos: {errores}");
         }
+    }
+
+    private static void NormalizarDesconocidos(EmpresaDto dto)
+    {
+        dto.RazonSocial = DatoDesconocido.Normalizar(dto.RazonSocial) ?? string.Empty;
+        dto.NombreComercial = DatoDesconocido.Normalizar(dto.NombreComercial) ?? string.Empty;
+        dto.Telefono = DatoDesconocido.Normalizar(dto.Telefono);
+        dto.Email = DatoDesconocido.Normalizar(dto.Email);
+        dto.LogoRuta = DatoDesconocido.Normalizar(dto.LogoRuta);
+        dto.DireccionCompleta = DatoDesconocido.Normalizar(dto.DireccionCompleta) ?? string.Empty;
+        dto.Ciudad = DatoDesconocido.Normalizar(dto.Ciudad) ?? string.Empty;
+        dto.Departamento = DatoDesconocido.Normalizar(dto.Departamento) ?? string.Empty;
+        dto.Pais = DatoDesconocido.Normalizar(dto.Pais) ?? "Colombia";
+        dto.CodigoPostal = DatoDesconocido.Normalizar(dto.CodigoPostal);
+        dto.DigitoVerificacion = DatoDesconocido.Normalizar(dto.DigitoVerificacion);
+        dto.RegimenTributario = DatoDesconocido.Normalizar(dto.RegimenTributario);
+        dto.RepresentanteLegal = DatoDesconocido.Normalizar(dto.RepresentanteLegal);
     }
 
     private static Empresa ConstruirEntidad(EmpresaDto dto)

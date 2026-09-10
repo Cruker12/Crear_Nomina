@@ -181,4 +181,22 @@ public class EmpresaServiceTests
 
         await accion.Should().ThrowAsync<ReglaNegocioException>();
     }
+
+    [Fact]
+    public async Task CrearAsync_DatosDesconocidosMinusculas_DeberiaNormalizarANN()
+    {
+        _empresas.Setup(r => r.ObtenerPorNitAsync("900123456", It.IsAny<CancellationToken>()))
+            .ReturnsAsync((Empresa?)null);
+        var sut = CrearSut();
+        var dto = CrearDtoValido();
+        dto.RazonSocial = "nn";
+        dto.Ciudad = " nn ";
+        dto.Email = "nn";
+
+        var resultado = await sut.CrearAsync(dto);
+
+        resultado.RazonSocial.Should().Be("NN");
+        resultado.Ciudad.Should().Be("NN");
+        resultado.Email.Should().Be("NN");
+    }
 }

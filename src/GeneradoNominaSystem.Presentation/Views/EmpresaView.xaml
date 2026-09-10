@@ -40,32 +40,32 @@
             <ScrollViewer Grid.Column="1" VerticalScrollBarVisibility="Auto">
                 <StackPanel DataContext="{Binding Edicion}">
                     <TextBlock Text="Razón social" />
-                    <TextBox Text="{Binding RazonSocial, UpdateSourceTrigger=PropertyChanged}" Margin="0,0,0,6" />
+                    <TextBox Text="{Binding RazonSocial, UpdateSourceTrigger=PropertyChanged}" ToolTip="Escribe NN si no tienes este dato" Margin="0,0,0,6" />
                     <TextBlock Text="Nombre comercial" />
-                    <TextBox Text="{Binding NombreComercial, UpdateSourceTrigger=PropertyChanged}" Margin="0,0,0,6" />
+                    <TextBox Text="{Binding NombreComercial, UpdateSourceTrigger=PropertyChanged}" ToolTip="Escribe NN si no tienes este dato" Margin="0,0,0,6" />
                     <TextBlock Text="NIT" />
                     <TextBox Text="{Binding Nit, UpdateSourceTrigger=PropertyChanged}" Margin="0,0,0,6" />
                     <TextBlock Text="Dígito verificación" />
-                    <TextBox Text="{Binding DigitoVerificacion, UpdateSourceTrigger=PropertyChanged}" Margin="0,0,0,6" />
+                    <TextBox Text="{Binding DigitoVerificacion, UpdateSourceTrigger=PropertyChanged}" ToolTip="Escribe NN si no tienes este dato" Margin="0,0,0,6" />
                     <TextBlock Text="Teléfono" />
-                    <TextBox Text="{Binding Telefono, UpdateSourceTrigger=PropertyChanged}" Margin="0,0,0,6" />
+                    <TextBox Text="{Binding Telefono, UpdateSourceTrigger=PropertyChanged}" ToolTip="Escribe NN si no tienes este dato" Margin="0,0,0,6" />
                     <TextBlock Text="Email" />
-                    <TextBox Text="{Binding Email, UpdateSourceTrigger=PropertyChanged}" Margin="0,0,0,6" />
+                    <TextBox Text="{Binding Email, UpdateSourceTrigger=PropertyChanged}" ToolTip="Escribe NN si no tienes este dato" Margin="0,0,0,6" />
                     <TextBlock Text="Dirección" />
-                    <TextBox Text="{Binding DireccionCompleta, UpdateSourceTrigger=PropertyChanged}" Margin="0,0,0,6" />
+                    <TextBox Text="{Binding DireccionCompleta, UpdateSourceTrigger=PropertyChanged}" ToolTip="Escribe NN si no tienes este dato" Margin="0,0,0,6" />
                     <TextBlock Text="Ciudad" />
-                    <TextBox Text="{Binding Ciudad, UpdateSourceTrigger=PropertyChanged}" Margin="0,0,0,6" />
+                    <TextBox Text="{Binding Ciudad, UpdateSourceTrigger=PropertyChanged}" ToolTip="Escribe NN si no tienes este dato" Margin="0,0,0,6" />
                     <TextBlock Text="Departamento" />
-                    <TextBox Text="{Binding Departamento, UpdateSourceTrigger=PropertyChanged}" Margin="0,0,0,6" />
+                    <TextBox Text="{Binding Departamento, UpdateSourceTrigger=PropertyChanged}" ToolTip="Escribe NN si no tienes este dato" Margin="0,0,0,6" />
                     <TextBlock Text="País" />
-                    <TextBox Text="{Binding Pais, UpdateSourceTrigger=PropertyChanged}" Margin="0,0,0,6" />
+                    <TextBox Text="{Binding Pais, UpdateSourceTrigger=PropertyChanged}" ToolTip="Escribe NN si no tienes este dato" Margin="0,0,0,6" />
                     <TextBlock Text="Régimen tributario" />
-                    <TextBox Text="{Binding RegimenTributario, UpdateSourceTrigger=PropertyChanged}" Margin="0,0,0,6" />
+                    <TextBox Text="{Binding RegimenTributario, UpdateSourceTrigger=PropertyChanged}" ToolTip="Escribe NN si no tienes este dato" Margin="0,0,0,6" />
                     <TextBlock Text="Representante legal" />
-                    <TextBox Text="{Binding RepresentanteLegal, UpdateSourceTrigger=PropertyChanged}" Margin="0,0,0,6" />
+                    <TextBox Text="{Binding RepresentanteLegal, UpdateSourceTrigger=PropertyChanged}" ToolTip="Escribe NN si no tienes este dato" Margin="0,0,0,6" />
                     <CheckBox Content="Responsable IVA" IsChecked="{Binding ResponsableIva}" Margin="0,0,0,6" />
                     <TextBlock Text="Ruta logo" />
-                    <TextBox Text="{Binding LogoRuta, UpdateSourceTrigger=PropertyChanged}" Margin="0,0,0,6" />
+                    <TextBox Text="{Binding LogoRuta, UpdateSourceTrigger=PropertyChanged}" ToolTip="Escribe NN si no tienes este dato" Margin="0,0,0,6" />
                 </StackPanel>
             </ScrollViewer>
         </Grid>

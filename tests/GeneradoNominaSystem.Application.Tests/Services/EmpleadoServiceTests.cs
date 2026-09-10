@@ -186,4 +186,25 @@ public class EmpleadoServiceTests
 
         await accion.Should().ThrowAsync<ReglaNegocioException>();
     }
+
+    [Fact]
+    public async Task CrearAsync_DatosDesconocidosMinusculas_DeberiaNormalizarANN()
+    {
+        var empresa = CrearEmpresa();
+        _empresas.Setup(r => r.ObtenerPorIdAsync(empresa.Id, It.IsAny<CancellationToken>()))
+            .ReturnsAsync(empresa);
+        _empleados.Setup(r => r.ObtenerPorDocumentoAsync(empresa.Id, "12345678", It.IsAny<CancellationToken>()))
+            .ReturnsAsync((Empleado?)null);
+        var sut = CrearSut();
+        var dto = CrearDtoValido(empresa.Id);
+        dto.Nombres = "nn";
+        dto.Apellidos = " nn ";
+        dto.Email = "nn";
+
+        var resultado = await sut.CrearAsync(dto);
+
+        resultado.Nombres.Should().Be("NN");
+        resultado.Apellidos.Should().Be("NN");
+        resultado.Email.Should().Be("NN");
+    }
 }

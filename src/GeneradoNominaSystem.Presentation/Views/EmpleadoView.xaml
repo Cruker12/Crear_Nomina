@@ -50,13 +50,13 @@
                     <TextBlock Text="Número documento" />
                     <TextBox Text="{Binding NumeroDocumento, UpdateSourceTrigger=PropertyChanged}" Margin="0,0,0,6" />
                     <TextBlock Text="Nombres" />
-                    <TextBox Text="{Binding Nombres, UpdateSourceTrigger=PropertyChanged}" Margin="0,0,0,6" />
+                    <TextBox Text="{Binding Nombres, UpdateSourceTrigger=PropertyChanged}" ToolTip="Escribe NN si no tienes este dato" Margin="0,0,0,6" />
                     <TextBlock Text="Apellidos" />
-                    <TextBox Text="{Binding Apellidos, UpdateSourceTrigger=PropertyChanged}" Margin="0,0,0,6" />
+                    <TextBox Text="{Binding Apellidos, UpdateSourceTrigger=PropertyChanged}" ToolTip="Escribe NN si no tienes este dato" Margin="0,0,0,6" />
                     <TextBlock Text="Cargo" />
-                    <TextBox Text="{Binding Cargo, UpdateSourceTrigger=PropertyChanged}" Margin="0,0,0,6" />
+                    <TextBox Text="{Binding Cargo, UpdateSourceTrigger=PropertyChanged}" ToolTip="Escribe NN si no tienes este dato" Margin="0,0,0,6" />
                     <TextBlock Text="Área / Departamento" />
-                    <TextBox Text="{Binding DepartamentoArea, UpdateSourceTrigger=PropertyChanged}" Margin="0,0,0,6" />
+                    <TextBox Text="{Binding DepartamentoArea, UpdateSourceTrigger=PropertyChanged}" ToolTip="Escribe NN si no tienes este dato" Margin="0,0,0,6" />
                     <TextBlock Text="Tipo contrato" />
                     <ComboBox ItemsSource="{Binding DataContext.TiposContrato, RelativeSource={RelativeSource AncestorType=UserControl}}"
                               SelectedItem="{Binding TipoContrato}" Margin="0,0,0,6" />
@@ -67,9 +67,9 @@
                     <TextBlock Text="Moneda" />
                     <TextBox Text="{Binding SalarioBaseMoneda, UpdateSourceTrigger=PropertyChanged}" Margin="0,0,0,6" />
                     <TextBlock Text="Email" />
-                    <TextBox Text="{Binding Email, UpdateSourceTrigger=PropertyChanged}" Margin="0,0,0,6" />
+                    <TextBox Text="{Binding Email, UpdateSourceTrigger=PropertyChanged}" ToolTip="Escribe NN si no tienes este dato" Margin="0,0,0,6" />
                     <TextBlock Text="Teléfono" />
-                    <TextBox Text="{Binding Telefono, UpdateSourceTrigger=PropertyChanged}" Margin="0,0,0,6" />
+                    <TextBox Text="{Binding Telefono, UpdateSourceTrigger=PropertyChanged}" ToolTip="Escribe NN si no tienes este dato" Margin="0,0,0,6" />
                 </StackPanel>
             </ScrollViewer>
         </Grid>

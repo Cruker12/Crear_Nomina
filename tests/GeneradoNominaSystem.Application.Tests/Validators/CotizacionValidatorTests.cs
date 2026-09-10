@@ -41,6 +41,18 @@ public class CotizacionValidatorTests
     }
 
     [Fact]
+    public async Task Validate_ClienteDesconocido_DeberiaSerValido()
+    {
+        var dto = CrearDtoValido();
+        dto.ClienteNombre = "NN";
+        dto.ClienteEmail = "nn";
+
+        var resultado = await _sut.ValidateAsync(dto);
+
+        resultado.IsValid.Should().BeTrue();
+    }
+
+    [Fact]
     public async Task ValidateDetalle_CantidadCero_DeberiaFallar()
     {
         var dto = new DetalleCotizacionDto

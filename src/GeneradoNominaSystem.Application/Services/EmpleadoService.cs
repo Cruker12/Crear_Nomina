@@ -1,6 +1,7 @@
 using FluentValidation;
 using GeneradoNominaSystem.Application.DTOs;
 using GeneradoNominaSystem.Application.Interfaces;
+using GeneradoNominaSystem.Domain.Comun;
 using GeneradoNominaSystem.Domain.Entities;
 using GeneradoNominaSystem.Domain.Enums;
 using GeneradoNominaSystem.Domain.Exceptions;
@@ -52,6 +53,7 @@ public sealed class EmpleadoService : IEmpleadoService
 
     public async Task<EmpleadoDto> CrearAsync(EmpleadoDto dto, CancellationToken ct = default)
     {
+        NormalizarDesconocidos(dto);
         await ValidarAsync(dto, ct);
         await ValidarEmpresaExisteAsync(dto.EmpresaId, ct);
         await ValidarDocumentoUnicoAsync(dto.EmpresaId, dto.NumeroDocumento.Trim(), null, ct);
@@ -65,6 +67,7 @@ public sealed class EmpleadoService : IEmpleadoService
 
     public async Task<EmpleadoDto> ActualizarAsync(EmpleadoDto dto, CancellationToken ct = default)
     {
+        NormalizarDesconocidos(dto);
         await ValidarAsync(dto, ct);
 
         var entidad = await _empleados.ObtenerPorIdAsync(dto.Id, ct);
@@ -163,8 +166,22 @@ public sealed class EmpleadoService : IEmpleadoService
         return empleado;
     }
 
-    private static Direccion? ConstruirDireccion(EmpleadoDto dto)
+    private static void NormalizarDesconocidos(EmpleadoDto dto)
     {
+        dto.Nombres = DatoDesconocido.Normalizar(dto.Nombres) ?? string.Empty;
+        dto.Apellidos = DatoDesconocido.Normalizar(dto.Apellidos) ?? string.Empty;
+        dto.Cargo = DatoDesconocido.Normalizar(dto.Cargo) ?? string.Empty;
+        dto.DepartamentoArea = DatoDesconocido.Normalizar(dto.DepartamentoArea);
+        dto.Email = DatoDesconocido.Normalizar(dto.Email);
+        dto.Telefono = DatoDesconocido.Normalizar(dto.Telefono);
+        dto.DireccionCompleta = DatoDesconocido.Normalizar(dto.DireccionCompleta);
+        dto.Ciudad = DatoDesconocido.Normalizar(dto.Ciudad);
+        dto.Departamento = DatoDesconocido.Normalizar(dto.Departamento);
+        dto.Pais = DatoDesconocido.Normalizar(dto.Pais) ?? "Colombia";
+        dto.CodigoPostal = DatoDesconocido.Normalizar(dto.CodigoPostal);
+    }
+
+    private static Direccion? ConstruirDireccion(EmpleadoDto dto)    {
         if (string.IsNullOrWhiteSpace(dto.DireccionCompleta)
             || string.IsNullOrWhiteSpace(dto.Ciudad)
             || string.IsNullOrWhiteSpace(dto.Departamento))
