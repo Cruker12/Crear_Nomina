@@ -18,6 +18,10 @@ public sealed class NominaDto
 
     public EstadoNomina Estado { get; set; } = EstadoNomina.Borrador;
 
+    public DateTime FechaCreacion { get; set; }
+
+    public DateTime? FechaCalculo { get; set; }
+
     public string? Observaciones { get; set; }
 
     public decimal SubtotalDevengos { get; set; }

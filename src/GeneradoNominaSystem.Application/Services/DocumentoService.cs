@@ -80,7 +80,7 @@ public sealed class DocumentoService : IDocumentoService
 
         var modelo = await ConstruirModeloAsync(nomina, ct);
         var extension = formato == FormatoExportacion.Pdf ? "pdf" : "xlsx";
-        var ruta = Path.Combine(carpetaDestino, $"{Sanear(modelo.NumeroDocumento)}.{extension}");
+        var ruta = ResolverRutaUnica(carpetaDestino, Sanear(modelo.NumeroDocumento), extension);
 
         exportador.ExportarNomina(modelo, ruta);
 
@@ -104,6 +104,12 @@ public sealed class DocumentoService : IDocumentoService
     public async Task<IReadOnlyList<DocumentoDto>> ListarPorReferenciaAsync(Guid referenciaId, CancellationToken ct = default)
     {
         var entidades = await _documentos.ListarPorReferenciaAsync(referenciaId, ct);
+        return entidades.Select(Mapear).ToList();
+    }
+
+    public async Task<IReadOnlyList<DocumentoDto>> ListarPorEmpresaAsync(Guid empresaId, CancellationToken ct = default)
+    {
+        var entidades = await _documentos.ListarPorEmpresaAsync(empresaId, ct);
         return entidades.Select(Mapear).ToList();
     }
 
@@ -137,7 +143,7 @@ public sealed class DocumentoService : IDocumentoService
 
         var modelo = await ConstruirModeloCotizacionAsync(cotizacion, ct);
         var extension = formato == FormatoExportacion.Pdf ? "pdf" : "xlsx";
-        var ruta = Path.Combine(carpetaDestino, $"{Sanear(modelo.NumeroCotizacion)}.{extension}");
+        var ruta = ResolverRutaUnica(carpetaDestino, Sanear(modelo.NumeroCotizacion), extension);
 
         exportador.ExportarCotizacion(modelo, ruta);
 
@@ -240,6 +246,21 @@ public sealed class DocumentoService : IDocumentoService
         }
 
         return nombre;
+    }
+
+    private static string ResolverRutaUnica(string carpeta, string baseNombre, string extension)
+    {
+        Directory.CreateDirectory(carpeta);
+        var sello = DateTime.UtcNow.ToString("yyyyMMddHHmmss");
+        var ruta = Path.Combine(carpeta, $"{baseNombre}_{sello}.{extension}");
+        var contador = 2;
+        while (File.Exists(ruta))
+        {
+            ruta = Path.Combine(carpeta, $"{baseNombre}_{sello}_{contador}.{extension}");
+            contador++;
+        }
+
+        return ruta;
     }
 
     private static DocumentoDto Mapear(Documento d)

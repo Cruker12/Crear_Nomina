@@ -18,4 +18,6 @@ public interface IDocumentoService
         CancellationToken ct = default);
 
     Task<IReadOnlyList<DocumentoDto>> ListarPorReferenciaAsync(Guid referenciaId, CancellationToken ct = default);
+
+    Task<IReadOnlyList<DocumentoDto>> ListarPorEmpresaAsync(Guid empresaId, CancellationToken ct = default);
 }

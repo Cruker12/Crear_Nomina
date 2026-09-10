@@ -20,6 +20,7 @@ public static class DependencyInjection
         services.AddScoped<IPlantillaNominaService, PlantillaNominaService>();
         services.AddScoped<IProductoServicioService, ProductoServicioService>();
         services.AddScoped<IPlantillaCotizacionService, PlantillaCotizacionService>();
+        services.AddScoped<IHistorialService, HistorialService>();
         services.AddScoped<ICotizacionService, CotizacionService>();
         services.AddScoped<IDocumentoService, DocumentoService>();
         services.AddScoped<INominaService, NominaService>();

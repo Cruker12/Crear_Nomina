@@ -138,16 +138,19 @@ public class DocumentoServiceTests : IDisposable
     }
 
     [Fact]
-    public async Task ExportarNominaAsync_DosVeces_DeberiaCrearDosRegistros()
+    public async Task ExportarNominaAsync_DosVeces_DeberiaCrearDosRegistrosConRutasDistintas()
     {
         var nomina = CrearNominaCalculada(_empresaId, _empleado.Id, _periodo.Id, _salario.Id);
         ConfigurarComunes(nomina);
         var sut = CrearSut();
 
-        await sut.ExportarNominaAsync(nomina.Id, FormatoExportacion.Pdf, _carpeta);
-        await sut.ExportarNominaAsync(nomina.Id, FormatoExportacion.Pdf, _carpeta);
+        var primero = await sut.ExportarNominaAsync(nomina.Id, FormatoExportacion.Pdf, _carpeta);
+        var segundo = await sut.ExportarNominaAsync(nomina.Id, FormatoExportacion.Pdf, _carpeta);
 
         _documentos.Verify(r => r.AgregarAsync(It.IsAny<Documento>(), It.IsAny<CancellationToken>()), Times.Exactly(2));
+        primero.RutaArchivo.Should().NotBe(segundo.RutaArchivo);
+        File.Exists(primero.RutaArchivo).Should().BeTrue();
+        File.Exists(segundo.RutaArchivo).Should().BeTrue();
     }
 
     [Fact]

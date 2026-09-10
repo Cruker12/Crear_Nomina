@@ -77,6 +77,22 @@ public sealed class NominaService : INominaService
         return lista;
     }
 
+    public async Task<IReadOnlyList<NominaDto>> ListarPorEmpresaAsync(Guid empresaId, CancellationToken ct = default)
+    {
+        var entidades = await _nominas.ListarPorEmpresaAsync(empresaId, ct);
+        var lista = new List<NominaDto>();
+        foreach (var n in entidades)
+        {
+            var completa = await _nominas.ObtenerConDetallesAsync(n.Id, ct);
+            if (completa is not null)
+            {
+                lista.Add(await MapearAsync(completa, ct));
+            }
+        }
+
+        return lista;
+    }
+
     public async Task<NominaDto> CrearAsync(Guid empresaId, Guid empleadoId, Guid periodoId, CancellationToken ct = default)
     {
         var empleado = await _empleados.ObtenerPorIdAsync(empleadoId, ct);
@@ -294,6 +310,8 @@ public sealed class NominaService : INominaService
             PeriodoNominaId = n.PeriodoNominaId,
             PeriodoNombre = periodo?.Nombre ?? string.Empty,
             Estado = n.Estado,
+            FechaCreacion = n.FechaCreacion,
+            FechaCalculo = n.FechaCalculo,
             Observaciones = n.Observaciones,
             SubtotalDevengos = n.SubtotalDevengos.Monto,
             SubtotalDeducciones = n.SubtotalDeducciones.Monto,

@@ -22,6 +22,11 @@ public sealed class NominaRepository : Repository<Nomina>, INominaRepository
         return await DbSet.AsNoTracking().Where(n => n.EmpleadoId == empleadoId).ToListAsync(ct);
     }
 
+    public async Task<IReadOnlyList<Nomina>> ListarPorEmpresaAsync(Guid empresaId, CancellationToken ct = default)
+    {
+        return await DbSet.AsNoTracking().Where(n => n.EmpresaId == empresaId).ToListAsync(ct);
+    }
+
     public async Task<Nomina?> ObtenerConDetallesAsync(Guid id, CancellationToken ct = default)
     {
         return await DbSet

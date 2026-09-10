@@ -46,6 +46,9 @@
             <TabItem Header="Plant. Cotiz.">
                 <views:PlantillaCotizacionView x:Name="PlantillaCotizacionView" />
             </TabItem>
+            <TabItem Header="Historial">
+                <views:HistorialView x:Name="HistorialView" />
+            </TabItem>
         </TabControl>
     </Grid>
 </Window>

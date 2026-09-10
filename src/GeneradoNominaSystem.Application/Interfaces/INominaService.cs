@@ -10,6 +10,8 @@ public interface INominaService
 
     Task<IReadOnlyList<NominaDto>> ListarPorEmpleadoAsync(Guid empleadoId, CancellationToken ct = default);
 
+    Task<IReadOnlyList<NominaDto>> ListarPorEmpresaAsync(Guid empresaId, CancellationToken ct = default);
+
     Task<NominaDto> CrearAsync(Guid empresaId, Guid empleadoId, Guid periodoId, CancellationToken ct = default);
 
     Task<NominaDto> CrearDesdePlantillaAsync(

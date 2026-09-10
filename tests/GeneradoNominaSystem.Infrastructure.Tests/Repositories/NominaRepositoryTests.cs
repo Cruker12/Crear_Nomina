@@ -52,5 +52,41 @@ public sealed class NominaRepositoryTests : IDisposable
         obtenida.Detalles[0].Valor.Monto.Should().Be(1000000m);
     }
 
+    [Fact]
+    public async Task ListarPorEmpresa_ConDosNominas_DeberiaRetornarAmbas()
+    {
+        using var context = _factory.Crear();
+        var empresa = new Empresa(
+            "Empresa Test S.A.S.",
+            "Empresa Test",
+            "900999222",
+            new Direccion("Calle 1", "Bogotá", "Cundinamarca"),
+            new DatosFiscales("900999222", "Empresa Test S.A.S."));
+        var empleado = new Empleado(
+            empresa.Id,
+            TipoDocumentoIdentidad.Cedula,
+            "12345678",
+            "Juan",
+            "Pérez",
+            new DateTime(2024, 1, 15),
+            "Auxiliar",
+            new Dinero(1000000m, "COP"));
+        var periodo = new PeriodoNomina(empresa.Id, "Marzo 2026", TipoPeriodo.Mensual, new DateTime(2026, 3, 1), new DateTime(2026, 3, 31));
+
+        await context.Set<Empresa>().AddAsync(empresa);
+        await context.Set<Empleado>().AddAsync(empleado);
+        await context.Set<PeriodoNomina>().AddAsync(periodo);
+        await context.SaveChangesAsync();
+
+        await context.Set<Nomina>().AddAsync(new Nomina(empresa.Id, empleado.Id, periodo.Id));
+        await context.Set<Nomina>().AddAsync(new Nomina(empresa.Id, empleado.Id, periodo.Id));
+        await context.SaveChangesAsync();
+
+        var repo = new NominaRepository(context);
+        var lista = await repo.ListarPorEmpresaAsync(empresa.Id);
+
+        lista.Should().HaveCount(2);
+    }
+
     public void Dispose() => _factory.Dispose();
 }

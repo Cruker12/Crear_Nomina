@@ -1,0 +1,120 @@
+<UserControl x:Class="GeneradoNominaSystem.Presentation.Views.HistorialView"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             mc:Ignorable="d"
+             d:DesignHeight="650" d:DesignWidth="1100">
+    <Grid Margin="12">
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="*" />
+            <RowDefinition Height="Auto" />
+        </Grid.RowDefinitions>
+
+        <StackPanel Grid.Row="0" Orientation="Horizontal" Margin="0,0,0,8">
+            <TextBlock Text="Empresa" VerticalAlignment="Center" />
+            <ComboBox ItemsSource="{Binding EmpresasLista}"
+                      SelectedItem="{Binding EmpresaSeleccionada}"
+                      DisplayMemberPath="NombreComercial"
+                      Width="200" Margin="8,0,0,0" />
+            <TextBlock Text="Texto" VerticalAlignment="Center" Margin="12,0,0,0" />
+            <TextBox Text="{Binding Texto, UpdateSourceTrigger=PropertyChanged}" Width="160" Margin="8,0,0,0" />
+            <TextBlock Text="Desde" VerticalAlignment="Center" Margin="12,0,0,0" />
+            <DatePicker SelectedDate="{Binding Desde}" Width="130" Margin="8,0,0,0" />
+            <TextBlock Text="Hasta" VerticalAlignment="Center" Margin="12,0,0,0" />
+            <DatePicker SelectedDate="{Binding Hasta}" Width="130" Margin="8,0,0,0" />
+            <Button Content="Buscar" Command="{Binding BuscarCommand}" Margin="16,0,0,0" Padding="16,4" />
+        </StackPanel>
+
+        <TabControl Grid.Row="1">
+            <TabItem Header="Nóminas">
+                <Grid>
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="Auto" />
+                        <RowDefinition Height="*" />
+                    </Grid.RowDefinitions>
+                    <StackPanel Orientation="Horizontal" Margin="0,0,0,6">
+                        <TextBlock Text="Estado" VerticalAlignment="Center" />
+                        <ComboBox ItemsSource="{Binding EstadosNomina}"
+                                  SelectedItem="{Binding EstadoNomina}"
+                                  Width="130" Margin="8,0,0,0" />
+                    </StackPanel>
+                    <DataGrid Grid.Row="1"
+                              ItemsSource="{Binding Nominas}"
+                              AutoGenerateColumns="False"
+                              IsReadOnly="True">
+                        <DataGrid.Columns>
+                            <DataGridTextColumn Header="Empleado" Binding="{Binding EmpleadoNombre}" Width="*" />
+                            <DataGridTextColumn Header="Periodo" Binding="{Binding PeriodoNombre}" Width="150" />
+                            <DataGridTextColumn Header="Estado" Binding="{Binding Estado}" Width="90" />
+                            <DataGridTextColumn Header="Neto" Binding="{Binding TotalNeto}" Width="110" />
+                            <DataGridTextColumn Header="Creada" Binding="{Binding FechaCreacion, StringFormat=dd/MM/yyyy}" Width="100" />
+                        </DataGrid.Columns>
+                    </DataGrid>
+                </Grid>
+            </TabItem>
+            <TabItem Header="Cotizaciones">
+                <Grid>
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="Auto" />
+                        <RowDefinition Height="*" />
+                    </Grid.RowDefinitions>
+                    <StackPanel Orientation="Horizontal" Margin="0,0,0,6">
+                        <TextBlock Text="Estado" VerticalAlignment="Center" />
+                        <ComboBox ItemsSource="{Binding EstadosCotizacion}"
+                                  SelectedItem="{Binding EstadoCotizacion}"
+                                  Width="130" Margin="8,0,0,0" />
+                    </StackPanel>
+                    <DataGrid Grid.Row="1"
+                              ItemsSource="{Binding Cotizaciones}"
+                              AutoGenerateColumns="False"
+                              IsReadOnly="True">
+                        <DataGrid.Columns>
+                            <DataGridTextColumn Header="Número" Binding="{Binding NumeroCotizacion}" Width="130" />
+                            <DataGridTextColumn Header="Cliente" Binding="{Binding ClienteNombre}" Width="*" />
+                            <DataGridTextColumn Header="Estado" Binding="{Binding Estado}" Width="90" />
+                            <DataGridTextColumn Header="Total" Binding="{Binding TotalNeto}" Width="110" />
+                            <DataGridTextColumn Header="Emisión" Binding="{Binding FechaEmision, StringFormat=dd/MM/yyyy}" Width="100" />
+                        </DataGrid.Columns>
+                    </DataGrid>
+                </Grid>
+            </TabItem>
+            <TabItem Header="Documentos">
+                <Grid>
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="Auto" />
+                        <RowDefinition Height="*" />
+                    </Grid.RowDefinitions>
+                    <StackPanel Orientation="Horizontal" Margin="0,0,0,6">
+                        <TextBlock Text="Tipo" VerticalAlignment="Center" />
+                        <ComboBox ItemsSource="{Binding TiposDocumento}"
+                                  SelectedItem="{Binding TipoDocumento}"
+                                  Width="130" Margin="8,0,0,0" />
+                        <TextBlock Text="Formato" VerticalAlignment="Center" Margin="12,0,0,0" />
+                        <ComboBox ItemsSource="{Binding FormatosDocumento}"
+                                  SelectedItem="{Binding FormatoDocumento}"
+                                  Width="110" Margin="8,0,0,0" />
+                        <Button Content="Abrir archivo" Command="{Binding AbrirDocumentoCommand}" Margin="16,0,0,0" Padding="12,2" />
+                    </StackPanel>
+                    <DataGrid Grid.Row="1"
+                              ItemsSource="{Binding Documentos}"
+                              SelectedItem="{Binding DocumentoSeleccionado}"
+                              AutoGenerateColumns="False"
+                              IsReadOnly="True">
+                        <DataGrid.Columns>
+                            <DataGridTextColumn Header="Número" Binding="{Binding NumeroDocumento}" Width="150" />
+                            <DataGridTextColumn Header="Tipo" Binding="{Binding Tipo}" Width="90" />
+                            <DataGridTextColumn Header="Formato" Binding="{Binding Formato}" Width="80" />
+                            <DataGridTextColumn Header="Tamaño" Binding="{Binding TamanoBytes}" Width="90" />
+                            <DataGridTextColumn Header="Generado" Binding="{Binding FechaGeneracion, StringFormat=dd/MM/yyyy HH:mm}" Width="140" />
+                            <DataGridTextColumn Header="Ruta" Binding="{Binding RutaArchivo}" Width="*" />
+                        </DataGrid.Columns>
+                    </DataGrid>
+                </Grid>
+            </TabItem>
+        </TabControl>
+
+        <TextBlock Grid.Row="2" Text="{Binding Mensaje}" Margin="0,8,0,0" />
+    </Grid>
+</UserControl>
