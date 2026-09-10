@@ -29,12 +29,25 @@ Ver `docs/arquitectura.md`.
 - `docs/dominio.md` — entidades, value objects, enums, reglas, relaciones.
 - `docs/decisiones.md` — stack y decisiones justificadas.
 - `docs/roadmap.md` — 18 fases (F0–F17) con entregas y dependencias.
+- `docs/release-v1.0.md` — notas del release: instalación, backup, troubleshooting, licencias.
 
 ## Estado
 
-**Fase 0 completada** (definición). Sin código de producción aún.
+**v1.0.0 publicada** (tag `v1.0.0`). 138/138 tests. Ver `docs/release-v1.0.md`.
 
-Siguiente: **Fase 1 — Inicialización** (solución .NET, estructura, tests base).
+## Instalación (usuario final)
+
+1. Copia la carpeta `win-x64` publicada a la máquina Windows 10/11 x64.
+2. Ejecuta `GeneradoNominaSystem.Presentation.exe` (autocontenido, sin .NET previo).
+3. Datos en `%LocalAppData%\GeneradoNominaSystem\`, documentos en `Mis Documentos\GeneradoNominaSystem`.
+
+## Desarrollo
+
+```powershell
+dotnet build GeneradoNominaSystem.sln
+dotnet test GeneradoNominaSystem.sln
+powershell -ExecutionPolicy Bypass -File scripts/publish-windows.ps1
+```
 
 ## Desarrollo por fases
 
@@ -48,8 +61,8 @@ F0 definición -> F1 init -> F2 base -> F3 dominio -> F4 persistencia
  -> F12 históricos -> F13 UX -> F14 testing -> F15 .exe -> F16 QA -> F17 release
 ```
 
-## Requisitos (para Fase 1+)
+## Requisitos (desarrollo)
 
-- .NET 8 SDK
+- .NET 8 SDK (probado con 8.0.425)
 - Visual Studio 2022 17.8+ o VS Code + C# Dev Kit
 - Windows 10/11 x64
