@@ -18,10 +18,24 @@ public partial class App : System.Windows.Application
     {
         base.OnStartup(e);
 
-        var configuration = new ConfigurationBuilder()
-            .SetBasePath(AppContext.BaseDirectory)
-            .AddJsonFile("appsettings.json", optional: false, reloadOnChange: false)
-            .Build();
+        IConfiguration configuration;
+        try
+        {
+            configuration = new ConfigurationBuilder()
+                .SetBasePath(AppContext.BaseDirectory)
+                .AddJsonFile("appsettings.json", optional: false, reloadOnChange: false)
+                .Build();
+        }
+        catch (Exception ex)
+        {
+            MessageBox.Show(
+                $"No se pudo leer la configuración (appsettings.json): {ex.Message}. Reinstala la aplicación.",
+                "Error crítico",
+                MessageBoxButton.OK,
+                MessageBoxImage.Error);
+            Shutdown(1);
+            return;
+        }
 
         var services = new ServiceCollection();
         services.AddSingleton<IConfiguration>(configuration);
