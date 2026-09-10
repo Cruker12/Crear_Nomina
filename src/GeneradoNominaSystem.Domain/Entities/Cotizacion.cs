@@ -44,10 +44,9 @@ public class Cotizacion : EntityBase
     {
         ClienteNombre = string.Empty;
         NumeroCotizacion = string.Empty;
-        var cero = Dinero.Cero();
-        Subtotal = cero;
-        TotalDescuentos = cero;
-        TotalNeto = cero;
+        Subtotal = Dinero.Cero();
+        TotalDescuentos = Dinero.Cero();
+        TotalNeto = Dinero.Cero();
     }
 
     public Cotizacion(
@@ -91,10 +90,9 @@ public class Cotizacion : EntityBase
         FechaVigencia = fechaVigencia;
         Moneda = moneda.Trim().ToUpperInvariant();
         PlantillaCotizacionId = plantillaCotizacionId;
-        var cero = Dinero.Cero(Moneda);
-        Subtotal = cero;
-        TotalDescuentos = cero;
-        TotalNeto = cero;
+        Subtotal = Dinero.Cero(Moneda);
+        TotalDescuentos = Dinero.Cero(Moneda);
+        TotalNeto = Dinero.Cero(Moneda);
     }
 
     public void AgregarDetalle(DetalleCotizacion detalle)

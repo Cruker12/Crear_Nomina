@@ -17,7 +17,8 @@ public sealed class ServicioCalculoNomina
 {
     public ResultadoCalculoNomina Calcular(
         string moneda,
-        IEnumerable<ItemCalculoNomina> items)
+        IEnumerable<ItemCalculoNomina> items,
+        Dinero? baseCalculo = null)
     {
         if (string.IsNullOrWhiteSpace(moneda) || moneda.Trim().Length != 3)
         {
@@ -44,29 +45,21 @@ public sealed class ServicioCalculoNomina
                 throw new ReglaNegocioException("El concepto es obligatorio.");
             }
 
-            if (item.Valor is null)
+            if (!item.Concepto.Activo)
             {
-                throw new ReglaNegocioException("El valor del concepto es obligatorio.");
+                throw new ReglaNegocioException($"El concepto {item.Concepto.Nombre} está inactivo.");
             }
 
-            if (!string.Equals(item.Valor.Moneda, monedaNormalizada, StringComparison.OrdinalIgnoreCase))
-            {
-                throw new ReglaNegocioException($"El concepto {item.Concepto.Nombre} usa moneda {item.Valor.Moneda}, se esperaba {monedaNormalizada}.");
-            }
-
-            if (item.Valor.Monto < 0m)
-            {
-                throw new ReglaNegocioException($"El valor de {item.Concepto.Nombre} no puede ser negativo.");
-            }
+            var valor = ResolverValor(item, monedaNormalizada, baseCalculo);
 
             switch (item.Concepto.Tipo)
             {
                 case TipoConcepto.Devengo:
                 case TipoConcepto.Comision:
-                    devengos = devengos.Sumar(item.Valor);
+                    devengos = devengos.Sumar(valor);
                     break;
                 case TipoConcepto.Deduccion:
-                    deducciones = deducciones.Sumar(item.Valor);
+                    deducciones = deducciones.Sumar(valor);
                     break;
                 case TipoConcepto.Beneficio:
                     break;
@@ -77,5 +70,50 @@ public sealed class ServicioCalculoNomina
 
         var neto = devengos.Restar(deducciones);
         return new ResultadoCalculoNomina(devengos, deducciones, neto, monedaNormalizada);
+    }
+
+    private static Dinero ResolverValor(ItemCalculoNomina item, string moneda, Dinero? baseCalculo)
+    {
+        if (item.Concepto.EsPorcentaje)
+        {
+            if (item.Concepto.PorcentajeBase is null)
+            {
+                throw new ReglaNegocioException($"El concepto {item.Concepto.Nombre} es porcentaje pero no tiene base definida.");
+            }
+
+            if (baseCalculo is null)
+            {
+                throw new ReglaNegocioException($"El concepto {item.Concepto.Nombre} requiere base de cálculo.");
+            }
+
+            if (!string.Equals(baseCalculo.Moneda, moneda, StringComparison.OrdinalIgnoreCase))
+            {
+                throw new ReglaNegocioException($"La base de cálculo usa moneda {baseCalculo.Moneda}, se esperaba {moneda}.");
+            }
+
+            if (baseCalculo.Monto < 0m)
+            {
+                throw new ReglaNegocioException("La base de cálculo no puede ser negativa.");
+            }
+
+            return baseCalculo.MultiplicarPor(item.Concepto.PorcentajeBase.Value / 100m);
+        }
+
+        if (item.Valor is null)
+        {
+            throw new ReglaNegocioException($"El valor del concepto {item.Concepto.Nombre} es obligatorio.");
+        }
+
+        if (!string.Equals(item.Valor.Moneda, moneda, StringComparison.OrdinalIgnoreCase))
+        {
+            throw new ReglaNegocioException($"El concepto {item.Concepto.Nombre} usa moneda {item.Valor.Moneda}, se esperaba {moneda}.");
+        }
+
+        if (item.Valor.Monto < 0m)
+        {
+            throw new ReglaNegocioException($"El valor de {item.Concepto.Nombre} no puede ser negativo.");
+        }
+
+        return item.Valor;
     }
 }

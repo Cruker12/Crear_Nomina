@@ -34,10 +34,9 @@ public class Nomina : EntityBase
 
     protected Nomina()
     {
-        var cero = Dinero.Cero();
-        SubtotalDevengos = cero;
-        SubtotalDeducciones = cero;
-        TotalNeto = cero;
+        SubtotalDevengos = Dinero.Cero();
+        SubtotalDeducciones = Dinero.Cero();
+        TotalNeto = Dinero.Cero();
     }
 
     public Nomina(Guid empresaId, Guid empleadoId, Guid periodoNominaId, Guid? plantillaNominaId = null)
@@ -61,10 +60,9 @@ public class Nomina : EntityBase
         EmpleadoId = empleadoId;
         PeriodoNominaId = periodoNominaId;
         PlantillaNominaId = plantillaNominaId;
-        var cero = Dinero.Cero();
-        SubtotalDevengos = cero;
-        SubtotalDeducciones = cero;
-        TotalNeto = cero;
+        SubtotalDevengos = Dinero.Cero();
+        SubtotalDeducciones = Dinero.Cero();
+        TotalNeto = Dinero.Cero();
     }
 
     public void AgregarDetalle(DetalleNomina detalle)

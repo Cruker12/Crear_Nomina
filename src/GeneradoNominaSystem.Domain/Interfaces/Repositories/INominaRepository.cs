@@ -7,4 +7,6 @@ public interface INominaRepository : IRepository<Nomina>
     Task<IReadOnlyList<Nomina>> ListarPorPeriodoAsync(Guid periodoId, CancellationToken ct = default);
 
     Task<IReadOnlyList<Nomina>> ListarPorEmpleadoAsync(Guid empleadoId, CancellationToken ct = default);
+
+    Task<Nomina?> ObtenerConDetallesAsync(Guid id, CancellationToken ct = default);
 }

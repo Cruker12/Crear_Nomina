@@ -21,4 +21,11 @@ public sealed class NominaRepository : Repository<Nomina>, INominaRepository
     {
         return await DbSet.AsNoTracking().Where(n => n.EmpleadoId == empleadoId).ToListAsync(ct);
     }
+
+    public async Task<Nomina?> ObtenerConDetallesAsync(Guid id, CancellationToken ct = default)
+    {
+        return await DbSet
+            .Include(n => n.Detalles)
+            .FirstOrDefaultAsync(n => n.Id == id, ct);
+    }
 }
