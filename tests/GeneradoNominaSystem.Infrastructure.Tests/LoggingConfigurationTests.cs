@@ -13,6 +13,7 @@ public class LoggingConfigurationTests
             .AddInMemoryCollection(new Dictionary<string, string?>
             {
                 ["Logging:Path"] = rutaLog,
+                ["Database:Path"] = Path.Combine(Path.GetTempPath(), $"gns-di-{Guid.NewGuid():N}.db"),
                 ["App:Name"] = "Generado Nomina System",
             })
             .Build();

@@ -13,6 +13,11 @@ public static class ConfiguracionSerilog
             rutaLog = "logs/log-.txt";
         }
 
+        return CrearLoggerEn(rutaLog);
+    }
+
+    public static Serilog.ILogger CrearLoggerEn(string rutaLog)
+    {
         var logger = new LoggerConfiguration()
             .MinimumLevel.Information()
             .Enrich.FromLogContext()

@@ -18,6 +18,7 @@ public class CompositionRootTests
                 ["App:Version"] = "0.2.0",
                 ["Company:DefaultCurrency"] = "COP",
                 ["Logging:Path"] = Path.Combine(Path.GetTempPath(), $"gns-comp-{Guid.NewGuid():N}.txt"),
+                ["Database:Path"] = Path.Combine(Path.GetTempPath(), $"gns-comp-{Guid.NewGuid():N}.db"),
             })
             .Build();
 

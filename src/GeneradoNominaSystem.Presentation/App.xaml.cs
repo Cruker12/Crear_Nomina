@@ -2,6 +2,8 @@
 using System.Windows;
 using GeneradoNominaSystem.Application;
 using GeneradoNominaSystem.Infrastructure;
+using GeneradoNominaSystem.Infrastructure.Data;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 
@@ -29,6 +31,25 @@ public partial class App : System.Windows.Application
 
         _serviceProvider = services.BuildServiceProvider();
         _logger = _serviceProvider.GetRequiredService<Serilog.ILogger>();
+
+        try
+        {
+            using var scope = _serviceProvider.CreateScope();
+            scope.ServiceProvider.GetRequiredService<AppDbContext>().Database.Migrate();
+            _logger.Information("Base de datos verificada.");
+        }
+        catch (Exception ex)
+        {
+            _logger.Error(ex, "No se pudo preparar la base de datos");
+            MessageBox.Show(
+                "No se pudo preparar la base de datos local. La aplicación se cerrará.",
+                "Error crítico",
+                MessageBoxButton.OK,
+                MessageBoxImage.Error);
+            Shutdown(1);
+            return;
+        }
+
         _logger.Information("Iniciando {App} v{Version}",
             configuration["App:Name"], configuration["App:Version"]);
 

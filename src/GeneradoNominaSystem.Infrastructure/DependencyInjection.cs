@@ -5,6 +5,7 @@ using GeneradoNominaSystem.Infrastructure.Data;
 using GeneradoNominaSystem.Infrastructure.Exportadores;
 using GeneradoNominaSystem.Infrastructure.Logging;
 using GeneradoNominaSystem.Infrastructure.Repositories;
+using GeneradoNominaSystem.Infrastructure.Services;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
@@ -17,27 +18,20 @@ public static class DependencyInjection
         this IServiceCollection services,
         IConfiguration configuration)
     {
-        var logger = ConfiguracionSerilog.CrearLogger(configuration);
-        services.AddSingleton(logger);
+        var rutas = new AppPaths(configuration);
+        services.AddSingleton<IAppPaths>(rutas);
         services.AddSingleton(configuration);
 
-        var rutaBd = configuration["Database:Path"];
-        if (string.IsNullOrWhiteSpace(rutaBd))
-        {
-            rutaBd = "data/app.db";
-        }
+        var logger = ConfiguracionSerilog.CrearLoggerEn(rutas.LogsPath);
+        services.AddSingleton(logger);
 
-        if (!Path.IsPathRooted(rutaBd))
-        {
-            rutaBd = Path.Combine(AppContext.BaseDirectory, rutaBd);
-        }
-
-        var directorio = Path.GetDirectoryName(rutaBd);
+        var directorio = Path.GetDirectoryName(rutas.DatabasePath);
         if (!string.IsNullOrWhiteSpace(directorio))
         {
             Directory.CreateDirectory(directorio);
         }
 
+        var rutaBd = rutas.DatabasePath;
         services.AddDbContext<AppDbContext>(options => options.UseSqlite($"Data Source={rutaBd}"));
 
         services.AddScoped<IEmpresaRepository, EmpresaRepository>();
