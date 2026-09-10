@@ -16,12 +16,13 @@ public class PlantillaNominaServiceTests
 {
     private readonly Mock<IPlantillaNominaRepository> _plantillas = new();
     private readonly Mock<IConceptoNominaRepository> _conceptos = new();
+    private readonly Mock<INominaRepository> _nominas = new();
     private readonly Mock<IUnitOfWork> _uow = new();
     private readonly Guid _empresaId = Guid.NewGuid();
 
     private PlantillaNominaService CrearSut()
     {
-        return new PlantillaNominaService(_plantillas.Object, _conceptos.Object, _uow.Object, new PlantillaNominaValidator());
+        return new PlantillaNominaService(_plantillas.Object, _conceptos.Object, _nominas.Object, _uow.Object, new PlantillaNominaValidator());
     }
 
     [Fact]
@@ -85,5 +86,53 @@ public class PlantillaNominaServiceTests
 
         plantilla.Conceptos.Should().BeEmpty();
         _uow.Verify(u => u.GuardarCambiosAsync(It.IsAny<CancellationToken>()), Times.Once);
+    }
+
+    [Fact]
+    public async Task DesactivarYActivar_PlantillaExistente_DeberiaCambiarEstado()
+    {
+        var plantilla = new PlantillaNomina(_empresaId, "Base");
+        _plantillas.Setup(r => r.ObtenerPorIdAsync(plantilla.Id, It.IsAny<CancellationToken>()))
+            .ReturnsAsync(plantilla);
+        var sut = CrearSut();
+
+        await sut.DesactivarAsync(plantilla.Id);
+        plantilla.Activo.Should().BeFalse();
+
+        await sut.ActivarAsync(plantilla.Id);
+        plantilla.Activo.Should().BeTrue();
+    }
+
+    [Fact]
+    public async Task EliminarAsync_SinUso_DeberiaEliminar()
+    {
+        var plantilla = new PlantillaNomina(_empresaId, "Base");
+        _plantillas.Setup(r => r.ObtenerPorIdAsync(plantilla.Id, It.IsAny<CancellationToken>()))
+            .ReturnsAsync(plantilla);
+        _nominas.Setup(r => r.ListarPorEmpresaAsync(_empresaId, It.IsAny<CancellationToken>()))
+            .ReturnsAsync(new List<Nomina>());
+        var sut = CrearSut();
+
+        await sut.EliminarAsync(plantilla.Id);
+
+        _plantillas.Verify(r => r.Eliminar(plantilla), Times.Once);
+        _uow.Verify(u => u.GuardarCambiosAsync(It.IsAny<CancellationToken>()), Times.Once);
+    }
+
+    [Fact]
+    public async Task EliminarAsync_EnUso_DeberiaLanzarReglaNegocio()
+    {
+        var plantilla = new PlantillaNomina(_empresaId, "Base");
+        var nomina = new Nomina(_empresaId, Guid.NewGuid(), Guid.NewGuid(), plantilla.Id);
+        _plantillas.Setup(r => r.ObtenerPorIdAsync(plantilla.Id, It.IsAny<CancellationToken>()))
+            .ReturnsAsync(plantilla);
+        _nominas.Setup(r => r.ListarPorEmpresaAsync(_empresaId, It.IsAny<CancellationToken>()))
+            .ReturnsAsync(new List<Nomina> { nomina });
+        var sut = CrearSut();
+
+        var accion = () => sut.EliminarAsync(plantilla.Id);
+
+        await accion.Should().ThrowAsync<ReglaNegocioException>();
+        _plantillas.Verify(r => r.Eliminar(It.IsAny<PlantillaNomina>()), Times.Never);
     }
 }

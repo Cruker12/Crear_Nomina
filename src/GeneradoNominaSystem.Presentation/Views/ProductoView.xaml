@@ -30,6 +30,7 @@
 
             <DataGrid Grid.Column="0"
                       ItemsSource="{Binding ProductosLista}"
+                      SelectedItem="{Binding Seleccionado}"
                       AutoGenerateColumns="False"
                       IsReadOnly="True"
                       Margin="0,0,8,0">
@@ -37,6 +38,7 @@
                     <DataGridTextColumn Header="Nombre" Binding="{Binding Nombre}" Width="*" />
                     <DataGridTextColumn Header="Precio" Binding="{Binding PrecioUnitarioMonto, StringFormat=N2}" Width="110" />
                     <DataGridTextColumn Header="Unidad" Binding="{Binding Unidad}" Width="80" />
+                    <DataGridCheckBoxColumn Header="Activo" Binding="{Binding Activo}" Width="60" />
                 </DataGrid.Columns>
             </DataGrid>
 
@@ -56,6 +58,9 @@
 
         <StackPanel Grid.Row="2" Orientation="Horizontal" Margin="0,8,0,0">
             <Button Content="Guardar" Command="{Binding GuardarCommand}" Padding="16,4" />
+            <Button Content="Desactivar" Command="{Binding DesactivarCommand}" Margin="8,0,0,0" Padding="16,4" />
+            <Button Content="Activar" Command="{Binding ActivarCommand}" Margin="8,0,0,0" Padding="16,4" />
+            <Button Content="Eliminar" Command="{Binding EliminarCommand}" Margin="8,0,0,0" Padding="16,4" />
             <ProgressBar IsIndeterminate="True" Visibility="{Binding Ocupado, Converter={StaticResource BoolToVisibility}}" Width="100" Height="8" Margin="16,0,0,0" VerticalAlignment="Center" />
             <TextBlock Text="{Binding Mensaje}" Style="{StaticResource MensajeStyle}" Margin="16,0,0,0" />
         </StackPanel>

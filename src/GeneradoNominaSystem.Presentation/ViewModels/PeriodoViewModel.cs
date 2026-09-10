@@ -15,6 +15,7 @@ public sealed class PeriodoViewModel : ViewModelBase
     private ObservableCollection<EmpresaDto> _empresasLista = new();
     private EmpresaDto? _empresaSeleccionada;
     private ObservableCollection<PeriodoNominaDto> _periodosLista = new();
+    private PeriodoNominaDto? _seleccionado;
     private PeriodoNominaDto _edicion = new();
     private string _mensaje = string.Empty;
     private bool _esError;
@@ -28,6 +29,15 @@ public sealed class PeriodoViewModel : ViewModelBase
         RecargarCommand = new RelayCommand(async _ => await RecargarAsync(), _ => !Ocupado);
         GuardarCommand = new RelayCommand(async _ => await GuardarAsync(), _ => !Ocupado);
         NuevoCommand = new RelayCommand(_ => Nuevo(), _ => !Ocupado);
+        DesactivarCommand = new RelayCommand(
+            async _ => await CambiarAsync(false),
+            _ => !Ocupado && Seleccionado is not null && Seleccionado.Activo);
+        ActivarCommand = new RelayCommand(
+            async _ => await CambiarAsync(true),
+            _ => !Ocupado && Seleccionado is not null && !Seleccionado.Activo);
+        EliminarCommand = new RelayCommand(
+            async _ => await EliminarAsync(),
+            _ => !Ocupado && Seleccionado is not null);
     }
 
     public ObservableCollection<EmpresaDto> EmpresasLista
@@ -52,6 +62,12 @@ public sealed class PeriodoViewModel : ViewModelBase
     {
         get => _periodosLista;
         private set => SetProperty(ref _periodosLista, value);
+    }
+
+    public PeriodoNominaDto? Seleccionado
+    {
+        get => _seleccionado;
+        set => SetProperty(ref _seleccionado, value);
     }
 
     public PeriodoNominaDto Edicion
@@ -85,6 +101,12 @@ public sealed class PeriodoViewModel : ViewModelBase
     public ICommand GuardarCommand { get; }
 
     public ICommand NuevoCommand { get; }
+
+    public ICommand DesactivarCommand { get; }
+
+    public ICommand ActivarCommand { get; }
+
+    public ICommand EliminarCommand { get; }
 
     public async Task InicializarAsync() => await RecargarAsync();
 
@@ -143,6 +165,63 @@ public sealed class PeriodoViewModel : ViewModelBase
             var lista = await _periodos.ListarPorEmpresaAsync(EmpresaSeleccionada.Id);
             PeriodosLista = new ObservableCollection<PeriodoNominaDto>(lista.OrderBy(p => p.FechaInicio));
         });
+    }
+
+    private async Task CambiarAsync(bool activar)
+    {
+        if (Seleccionado is null || EmpresaSeleccionada is null)
+        {
+            return;
+        }
+
+        var id = Seleccionado.Id;
+        var empresaId = EmpresaSeleccionada.Id;
+
+        await EjecutarAsync(async () =>
+        {
+            if (activar)
+            {
+                await _periodos.ActivarAsync(id);
+                Informar("Periodo activado.", esError: false);
+            }
+            else
+            {
+                await _periodos.DesactivarAsync(id);
+                Informar("Periodo desactivado (baja lógica).", esError: false);
+            }
+
+            await RecargarSilenciosoAsync(empresaId, id);
+        });
+    }
+
+    private async Task EliminarAsync()
+    {
+        if (Seleccionado is null || EmpresaSeleccionada is null)
+        {
+            return;
+        }
+
+        var nombre = Seleccionado.Nombre;
+        var id = Seleccionado.Id;
+        var empresaId = EmpresaSeleccionada.Id;
+
+        await EjecutarAsync(async () =>
+        {
+            await _periodos.EliminarAsync(id);
+            Seleccionado = null;
+            Edicion = new PeriodoNominaDto { EmpresaId = empresaId };
+            Informar($"Periodo {nombre} eliminado.", esError: false);
+            await RecargarSilenciosoAsync(empresaId, null);
+        });
+    }
+
+    private async Task RecargarSilenciosoAsync(Guid empresaId, Guid? seleccionarId)
+    {
+        var lista = await _periodos.ListarPorEmpresaAsync(empresaId);
+        PeriodosLista = new ObservableCollection<PeriodoNominaDto>(lista.OrderBy(p => p.FechaInicio));
+        Seleccionado = seleccionarId.HasValue
+            ? PeriodosLista.FirstOrDefault(p => p.Id == seleccionarId.Value)
+            : PeriodosLista.FirstOrDefault();
     }
 
     private async Task EjecutarAsync(Func<Task> accion)

@@ -14,6 +14,7 @@ public sealed class ProductoViewModel : ViewModelBase
     private ObservableCollection<EmpresaDto> _empresasLista = new();
     private EmpresaDto? _empresaSeleccionada;
     private ObservableCollection<ProductoServicioDto> _productosLista = new();
+    private ProductoServicioDto? _seleccionado;
     private ProductoServicioDto _edicion = new();
     private string _mensaje = string.Empty;
     private bool _esError;
@@ -27,6 +28,15 @@ public sealed class ProductoViewModel : ViewModelBase
         RecargarCommand = new RelayCommand(async _ => await RecargarAsync(), _ => !Ocupado);
         GuardarCommand = new RelayCommand(async _ => await GuardarAsync(), _ => !Ocupado);
         NuevoCommand = new RelayCommand(_ => Nuevo(), _ => !Ocupado);
+        DesactivarCommand = new RelayCommand(
+            async _ => await CambiarAsync(false),
+            _ => !Ocupado && Seleccionado is not null && Seleccionado.Activo);
+        ActivarCommand = new RelayCommand(
+            async _ => await CambiarAsync(true),
+            _ => !Ocupado && Seleccionado is not null && !Seleccionado.Activo);
+        EliminarCommand = new RelayCommand(
+            async _ => await EliminarAsync(),
+            _ => !Ocupado && Seleccionado is not null);
     }
 
     public ObservableCollection<EmpresaDto> EmpresasLista
@@ -51,6 +61,12 @@ public sealed class ProductoViewModel : ViewModelBase
     {
         get => _productosLista;
         private set => SetProperty(ref _productosLista, value);
+    }
+
+    public ProductoServicioDto? Seleccionado
+    {
+        get => _seleccionado;
+        set => SetProperty(ref _seleccionado, value);
     }
 
     public ProductoServicioDto Edicion
@@ -82,6 +98,12 @@ public sealed class ProductoViewModel : ViewModelBase
     public ICommand GuardarCommand { get; }
 
     public ICommand NuevoCommand { get; }
+
+    public ICommand DesactivarCommand { get; }
+
+    public ICommand ActivarCommand { get; }
+
+    public ICommand EliminarCommand { get; }
 
     public async Task InicializarAsync() => await RecargarAsync();
 
@@ -119,7 +141,7 @@ public sealed class ProductoViewModel : ViewModelBase
         await EjecutarAsync(async () =>
         {
             var lista = await _productos.ListarPorEmpresaAsync(EmpresaSeleccionada.Id);
-            ProductosLista = new ObservableCollection<ProductoServicioDto>(lista.Where(p => p.Activo));
+            ProductosLista = new ObservableCollection<ProductoServicioDto>(lista);
             Edicion.EmpresaId = EmpresaSeleccionada.Id;
         });
     }
@@ -140,6 +162,63 @@ public sealed class ProductoViewModel : ViewModelBase
             await RecargarProductosAsync();
             Edicion = new ProductoServicioDto { EmpresaId = EmpresaSeleccionada.Id };
         });
+    }
+
+    private async Task CambiarAsync(bool activar)
+    {
+        if (Seleccionado is null || EmpresaSeleccionada is null)
+        {
+            return;
+        }
+
+        var id = Seleccionado.Id;
+        var empresaId = EmpresaSeleccionada.Id;
+
+        await EjecutarAsync(async () =>
+        {
+            if (activar)
+            {
+                await _productos.ActivarAsync(id);
+                Informar("Producto/servicio activado.", esError: false);
+            }
+            else
+            {
+                await _productos.DesactivarAsync(id);
+                Informar("Producto/servicio desactivado (baja lógica).", esError: false);
+            }
+
+            await RecargarSilenciosoAsync(empresaId, id);
+        });
+    }
+
+    private async Task EliminarAsync()
+    {
+        if (Seleccionado is null || EmpresaSeleccionada is null)
+        {
+            return;
+        }
+
+        var nombre = Seleccionado.Nombre;
+        var id = Seleccionado.Id;
+        var empresaId = EmpresaSeleccionada.Id;
+
+        await EjecutarAsync(async () =>
+        {
+            await _productos.EliminarAsync(id);
+            Seleccionado = null;
+            Edicion = new ProductoServicioDto { EmpresaId = empresaId };
+            Informar($"Producto/servicio {nombre} eliminado.", esError: false);
+            await RecargarSilenciosoAsync(empresaId, null);
+        });
+    }
+
+    private async Task RecargarSilenciosoAsync(Guid empresaId, Guid? seleccionarId)
+    {
+        var lista = await _productos.ListarPorEmpresaAsync(empresaId);
+        ProductosLista = new ObservableCollection<ProductoServicioDto>(lista);
+        Seleccionado = seleccionarId.HasValue
+            ? ProductosLista.FirstOrDefault(p => p.Id == seleccionarId.Value)
+            : ProductosLista.FirstOrDefault();
     }
 
     private async Task EjecutarAsync(Func<Task> accion)

@@ -11,15 +11,18 @@ namespace GeneradoNominaSystem.Application.Services;
 public sealed class PeriodoNominaService : IPeriodoNominaService
 {
     private readonly IPeriodoNominaRepository _periodos;
+    private readonly INominaRepository _nominas;
     private readonly IUnitOfWork _uow;
     private readonly IValidator<PeriodoNominaDto> _validator;
 
     public PeriodoNominaService(
         IPeriodoNominaRepository periodos,
+        INominaRepository nominas,
         IUnitOfWork uow,
         IValidator<PeriodoNominaDto> validator)
     {
         _periodos = periodos;
+        _nominas = nominas;
         _uow = uow;
         _validator = validator;
     }
@@ -67,6 +70,39 @@ public sealed class PeriodoNominaService : IPeriodoNominaService
 
         entidad.Desactivar();
         _periodos.Actualizar(entidad);
+        await _uow.GuardarCambiosAsync(ct);
+    }
+
+    public async Task ActivarAsync(Guid id, CancellationToken ct = default)
+    {
+        var entidad = await _periodos.ObtenerPorIdAsync(id, ct);
+        if (entidad is null)
+        {
+            throw new ReglaNegocioException("El periodo no existe.");
+        }
+
+        entidad.Activar();
+        _periodos.Actualizar(entidad);
+        await _uow.GuardarCambiosAsync(ct);
+    }
+
+    public async Task EliminarAsync(Guid id, CancellationToken ct = default)
+    {
+        var entidad = await _periodos.ObtenerPorIdAsync(id, ct);
+        if (entidad is null)
+        {
+            throw new ReglaNegocioException("El periodo no existe.");
+        }
+
+        var nominas = await _nominas.ListarPorPeriodoAsync(id, ct);
+        if (nominas.Count > 0)
+        {
+            throw new ReglaNegocioException(
+                "No se puede eliminar el periodo porque tiene nóminas registradas. " +
+                "Desactívalo en su lugar.");
+        }
+
+        _periodos.Eliminar(entidad);
         await _uow.GuardarCambiosAsync(ct);
     }
 

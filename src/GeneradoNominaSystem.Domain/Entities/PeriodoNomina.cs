@@ -62,4 +62,10 @@ public class PeriodoNomina : EntityBase
         Activo = false;
         MarcarModificacion();
     }
+
+    public void Activar()
+    {
+        Activo = true;
+        MarcarModificacion();
+    }
 }

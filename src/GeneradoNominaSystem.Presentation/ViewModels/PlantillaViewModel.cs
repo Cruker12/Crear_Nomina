@@ -45,6 +45,15 @@ public sealed class PlantillaViewModel : ViewModelBase
         QuitarConceptoCommand = new RelayCommand(
             async _ => await QuitarConceptoAsync(),
             _ => !Ocupado && Seleccionada is not null);
+        DesactivarCommand = new RelayCommand(
+            async _ => await CambiarAsync(false),
+            _ => !Ocupado && Seleccionada is not null && Seleccionada.Activo);
+        ActivarCommand = new RelayCommand(
+            async _ => await CambiarAsync(true),
+            _ => !Ocupado && Seleccionada is not null && !Seleccionada.Activo);
+        EliminarCommand = new RelayCommand(
+            async _ => await EliminarAsync(),
+            _ => !Ocupado && Seleccionada is not null);
     }
 
     public ObservableCollection<EmpresaDto> EmpresasLista
@@ -146,6 +155,12 @@ public sealed class PlantillaViewModel : ViewModelBase
     public ICommand AgregarConceptoCommand { get; }
 
     public ICommand QuitarConceptoCommand { get; }
+
+    public ICommand DesactivarCommand { get; }
+
+    public ICommand ActivarCommand { get; }
+
+    public ICommand EliminarCommand { get; }
 
     public async Task InicializarAsync() => await RecargarAsync();
 
@@ -254,8 +269,64 @@ public sealed class PlantillaViewModel : ViewModelBase
         });
     }
 
-    private void SincronizarSeleccionada()
+    private async Task CambiarAsync(bool activar)
     {
+        if (Seleccionada is null || EmpresaSeleccionada is null)
+        {
+            return;
+        }
+
+        var id = Seleccionada.Id;
+        var empresaId = EmpresaSeleccionada.Id;
+
+        await EjecutarAsync(async () =>
+        {
+            if (activar)
+            {
+                await _plantillas.ActivarAsync(id);
+                Informar("Plantilla activada.", esError: false);
+            }
+            else
+            {
+                await _plantillas.DesactivarAsync(id);
+                Informar("Plantilla desactivada (baja lógica).", esError: false);
+            }
+
+            await RecargarSilenciosoAsync(empresaId, id);
+        });
+    }
+
+    private async Task EliminarAsync()
+    {
+        if (Seleccionada is null || EmpresaSeleccionada is null)
+        {
+            return;
+        }
+
+        var nombre = Seleccionada.Nombre;
+        var id = Seleccionada.Id;
+        var empresaId = EmpresaSeleccionada.Id;
+
+        await EjecutarAsync(async () =>
+        {
+            await _plantillas.EliminarAsync(id);
+            Seleccionada = null;
+            Edicion = new PlantillaNominaDto { EmpresaId = empresaId };
+            Informar($"Plantilla {nombre} eliminada.", esError: false);
+            await RecargarSilenciosoAsync(empresaId, null);
+        });
+    }
+
+    private async Task RecargarSilenciosoAsync(Guid empresaId, Guid? seleccionarId)
+    {
+        var plantillas = await _plantillas.ListarPorEmpresaAsync(empresaId);
+        PlantillasLista = new ObservableCollection<PlantillaNominaDto>(plantillas);
+        Seleccionada = seleccionarId.HasValue
+            ? PlantillasLista.FirstOrDefault(p => p.Id == seleccionarId.Value)
+            : PlantillasLista.FirstOrDefault();
+    }
+
+    private void SincronizarSeleccionada()    {
         if (Seleccionada is null)
         {
             return;

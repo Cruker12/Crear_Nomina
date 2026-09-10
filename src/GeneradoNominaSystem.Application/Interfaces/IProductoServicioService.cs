@@ -9,4 +9,8 @@ public interface IProductoServicioService
     Task<ProductoServicioDto> CrearAsync(ProductoServicioDto dto, CancellationToken ct = default);
 
     Task DesactivarAsync(Guid id, CancellationToken ct = default);
+
+    Task ActivarAsync(Guid id, CancellationToken ct = default);
+
+    Task EliminarAsync(Guid id, CancellationToken ct = default);
 }

@@ -13,17 +13,20 @@ public sealed class PlantillaNominaService : IPlantillaNominaService
 {
     private readonly IPlantillaNominaRepository _plantillas;
     private readonly IConceptoNominaRepository _conceptos;
+    private readonly INominaRepository _nominas;
     private readonly IUnitOfWork _uow;
     private readonly IValidator<PlantillaNominaDto> _validator;
 
     public PlantillaNominaService(
         IPlantillaNominaRepository plantillas,
         IConceptoNominaRepository conceptos,
+        INominaRepository nominas,
         IUnitOfWork uow,
         IValidator<PlantillaNominaDto> validator)
     {
         _plantillas = plantillas;
         _conceptos = conceptos;
+        _nominas = nominas;
         _uow = uow;
         _validator = validator;
     }
@@ -134,6 +137,39 @@ public sealed class PlantillaNominaService : IPlantillaNominaService
 
         plantilla.Desactivar();
         _plantillas.Actualizar(plantilla);
+        await _uow.GuardarCambiosAsync(ct);
+    }
+
+    public async Task ActivarAsync(Guid id, CancellationToken ct = default)
+    {
+        var plantilla = await _plantillas.ObtenerPorIdAsync(id, ct);
+        if (plantilla is null)
+        {
+            throw new ReglaNegocioException("La plantilla no existe.");
+        }
+
+        plantilla.Activar();
+        _plantillas.Actualizar(plantilla);
+        await _uow.GuardarCambiosAsync(ct);
+    }
+
+    public async Task EliminarAsync(Guid id, CancellationToken ct = default)
+    {
+        var plantilla = await _plantillas.ObtenerPorIdAsync(id, ct);
+        if (plantilla is null)
+        {
+            throw new ReglaNegocioException("La plantilla no existe.");
+        }
+
+        var nominas = await _nominas.ListarPorEmpresaAsync(plantilla.EmpresaId, ct);
+        if (nominas.Any(n => n.PlantillaNominaId == id))
+        {
+            throw new ReglaNegocioException(
+                "No se puede eliminar la plantilla porque hay nóminas creadas desde ella. " +
+                "Desactívala en su lugar.");
+        }
+
+        _plantillas.Eliminar(plantilla);
         await _uow.GuardarCambiosAsync(ct);
     }
 

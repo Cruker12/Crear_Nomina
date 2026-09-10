@@ -41,4 +41,10 @@ public class PlantillaCotizacion : EntityBase
         Activo = false;
         MarcarModificacion();
     }
+
+    public void Activar()
+    {
+        Activo = true;
+        MarcarModificacion();
+    }
 }

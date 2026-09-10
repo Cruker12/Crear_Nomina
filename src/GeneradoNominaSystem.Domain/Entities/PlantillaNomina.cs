@@ -80,4 +80,10 @@ public class PlantillaNomina : EntityBase
         Activo = false;
         MarcarModificacion();
     }
+
+    public void Activar()
+    {
+        Activo = true;
+        MarcarModificacion();
+    }
 }

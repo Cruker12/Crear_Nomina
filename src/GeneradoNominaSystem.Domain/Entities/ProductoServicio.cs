@@ -63,4 +63,10 @@ public class ProductoServicio : EntityBase
         Activo = false;
         MarcarModificacion();
     }
+
+    public void Activar()
+    {
+        Activo = true;
+        MarcarModificacion();
+    }
 }

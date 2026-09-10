@@ -12,15 +12,18 @@ namespace GeneradoNominaSystem.Application.Services;
 public sealed class ProductoServicioService : IProductoServicioService
 {
     private readonly IProductoServicioRepository _productos;
+    private readonly ICotizacionRepository _cotizaciones;
     private readonly IUnitOfWork _uow;
     private readonly IValidator<ProductoServicioDto> _validator;
 
     public ProductoServicioService(
         IProductoServicioRepository productos,
+        ICotizacionRepository cotizaciones,
         IUnitOfWork uow,
         IValidator<ProductoServicioDto> validator)
     {
         _productos = productos;
+        _cotizaciones = cotizaciones;
         _uow = uow;
         _validator = validator;
     }
@@ -62,6 +65,43 @@ public sealed class ProductoServicioService : IProductoServicioService
 
         entidad.Desactivar();
         _productos.Actualizar(entidad);
+        await _uow.GuardarCambiosAsync(ct);
+    }
+
+    public async Task ActivarAsync(Guid id, CancellationToken ct = default)
+    {
+        var entidad = await _productos.ObtenerPorIdAsync(id, ct);
+        if (entidad is null)
+        {
+            throw new ReglaNegocioException("El producto/servicio no existe.");
+        }
+
+        entidad.Activar();
+        _productos.Actualizar(entidad);
+        await _uow.GuardarCambiosAsync(ct);
+    }
+
+    public async Task EliminarAsync(Guid id, CancellationToken ct = default)
+    {
+        var entidad = await _productos.ObtenerPorIdAsync(id, ct);
+        if (entidad is null)
+        {
+            throw new ReglaNegocioException("El producto/servicio no existe.");
+        }
+
+        var cotizaciones = await _cotizaciones.ListarPorEmpresaAsync(entidad.EmpresaId, ct);
+        foreach (var cotizacion in cotizaciones)
+        {
+            var completa = await _cotizaciones.ObtenerConDetallesAsync(cotizacion.Id, ct);
+            if (completa is not null && completa.Detalles.Any(d => d.ProductoServicioId == id))
+            {
+                throw new ReglaNegocioException(
+                    "No se puede eliminar el producto/servicio porque hay cotizaciones que lo usan. " +
+                    "Desactívalo en su lugar.");
+            }
+        }
+
+        _productos.Eliminar(entidad);
         await _uow.GuardarCambiosAsync(ct);
     }
 

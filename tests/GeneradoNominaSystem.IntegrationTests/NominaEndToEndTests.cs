@@ -47,7 +47,7 @@ public sealed class NominaEndToEndTests : IDisposable
 
         var empresaService = new EmpresaService(empresaRepo, empleadoRepo, uow, new EmpresaValidator());
         var empleadoService = new EmpleadoService(empleadoRepo, empresaRepo, nominaRepo, uow, new EmpleadoValidator());
-        var periodoService = new PeriodoNominaService(periodoRepo, uow, new PeriodoNominaValidator());
+        var periodoService = new PeriodoNominaService(periodoRepo, nominaRepo, uow, new PeriodoNominaValidator());
         var conceptoService = new ConceptoNominaService(conceptoRepo, uow, new ConceptoNominaValidator());
         var nominaService = new NominaService(
             nominaRepo, empleadoRepo, periodoRepo, conceptoRepo, plantillaRepo, uow, new DetalleNominaValidator());
@@ -139,10 +139,11 @@ public sealed class NominaEndToEndTests : IDisposable
         var empresaRepo = new EmpresaRepository(context);
         var empleadoRepo = new EmpleadoRepository(context);
         var conceptoRepo = new ConceptoNominaRepository(context);
+        var nominaRepo = new NominaRepository(context);
         var plantillaRepo = new PlantillaNominaRepository(context);
 
         var empresaService = new EmpresaService(empresaRepo, empleadoRepo, uow, new EmpresaValidator());
-        var plantillaService = new PlantillaNominaService(plantillaRepo, conceptoRepo, uow, new PlantillaNominaValidator());
+        var plantillaService = new PlantillaNominaService(plantillaRepo, conceptoRepo, nominaRepo, uow, new PlantillaNominaValidator());
         var conceptoService = new ConceptoNominaService(conceptoRepo, uow, new ConceptoNominaValidator());
 
         var empresa = await empresaService.CrearAsync(new EmpresaDto

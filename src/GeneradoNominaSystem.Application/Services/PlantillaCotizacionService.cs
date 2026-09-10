@@ -11,15 +11,18 @@ namespace GeneradoNominaSystem.Application.Services;
 public sealed class PlantillaCotizacionService : IPlantillaCotizacionService
 {
     private readonly IPlantillaCotizacionRepository _plantillas;
+    private readonly ICotizacionRepository _cotizaciones;
     private readonly IUnitOfWork _uow;
     private readonly IValidator<PlantillaCotizacionDto> _validator;
 
     public PlantillaCotizacionService(
         IPlantillaCotizacionRepository plantillas,
+        ICotizacionRepository cotizaciones,
         IUnitOfWork uow,
         IValidator<PlantillaCotizacionDto> validator)
     {
         _plantillas = plantillas;
+        _cotizaciones = cotizaciones;
         _uow = uow;
         _validator = validator;
     }
@@ -55,6 +58,39 @@ public sealed class PlantillaCotizacionService : IPlantillaCotizacionService
 
         entidad.Desactivar();
         _plantillas.Actualizar(entidad);
+        await _uow.GuardarCambiosAsync(ct);
+    }
+
+    public async Task ActivarAsync(Guid id, CancellationToken ct = default)
+    {
+        var entidad = await _plantillas.ObtenerPorIdAsync(id, ct);
+        if (entidad is null)
+        {
+            throw new ReglaNegocioException("La plantilla no existe.");
+        }
+
+        entidad.Activar();
+        _plantillas.Actualizar(entidad);
+        await _uow.GuardarCambiosAsync(ct);
+    }
+
+    public async Task EliminarAsync(Guid id, CancellationToken ct = default)
+    {
+        var entidad = await _plantillas.ObtenerPorIdAsync(id, ct);
+        if (entidad is null)
+        {
+            throw new ReglaNegocioException("La plantilla no existe.");
+        }
+
+        var cotizaciones = await _cotizaciones.ListarPorEmpresaAsync(entidad.EmpresaId, ct);
+        if (cotizaciones.Any(c => c.PlantillaCotizacionId == id))
+        {
+            throw new ReglaNegocioException(
+                "No se puede eliminar la plantilla porque hay cotizaciones que la usan. " +
+                "Desactívala en su lugar.");
+        }
+
+        _plantillas.Eliminar(entidad);
         await _uow.GuardarCambiosAsync(ct);
     }
 

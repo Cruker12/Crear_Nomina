@@ -22,4 +22,8 @@ public interface IPlantillaNominaService
     Task QuitarConceptoAsync(Guid plantillaId, Guid conceptoId, CancellationToken ct = default);
 
     Task DesactivarAsync(Guid id, CancellationToken ct = default);
+
+    Task ActivarAsync(Guid id, CancellationToken ct = default);
+
+    Task EliminarAsync(Guid id, CancellationToken ct = default);
 }

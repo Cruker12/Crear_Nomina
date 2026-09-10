@@ -9,4 +9,8 @@ public interface IPeriodoNominaService
     Task<PeriodoNominaDto> CrearAsync(PeriodoNominaDto dto, CancellationToken ct = default);
 
     Task DesactivarAsync(Guid id, CancellationToken ct = default);
+
+    Task ActivarAsync(Guid id, CancellationToken ct = default);
+
+    Task EliminarAsync(Guid id, CancellationToken ct = default);
 }

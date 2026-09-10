@@ -126,11 +126,15 @@ public class ServiceCoverageTests
         var repo = new Mock<IPeriodoNominaRepository>();
         var periodo = new PeriodoNomina(_empresaId, "Abril 2026", TipoPeriodo.Mensual, new DateTime(2026, 4, 1), new DateTime(2026, 4, 30));
         repo.Setup(r => r.ObtenerPorIdAsync(It.IsAny<Guid>(), It.IsAny<CancellationToken>())).ReturnsAsync(periodo);
-        var sut = new PeriodoNominaService(repo.Object, _uow.Object, new PeriodoNominaValidator());
+        var sut = new PeriodoNominaService(repo.Object, Mock.Of<INominaRepository>(), _uow.Object, new PeriodoNominaValidator());
 
         await sut.DesactivarAsync(periodo.Id);
 
         periodo.Activo.Should().BeFalse();
+
+        await sut.ActivarAsync(periodo.Id);
+
+        periodo.Activo.Should().BeTrue();
     }
 
     [Fact]
@@ -139,11 +143,15 @@ public class ServiceCoverageTests
         var repo = new Mock<IProductoServicioRepository>();
         var producto = new ProductoServicio(_empresaId, "Consultoría", new Dinero(100000m, "COP"));
         repo.Setup(r => r.ObtenerPorIdAsync(It.IsAny<Guid>(), It.IsAny<CancellationToken>())).ReturnsAsync(producto);
-        var sut = new ProductoServicioService(repo.Object, _uow.Object, new ProductoServicioValidator());
+        var sut = new ProductoServicioService(repo.Object, Mock.Of<ICotizacionRepository>(), _uow.Object, new ProductoServicioValidator());
 
         await sut.DesactivarAsync(producto.Id);
 
         producto.Activo.Should().BeFalse();
+
+        await sut.ActivarAsync(producto.Id);
+
+        producto.Activo.Should().BeTrue();
     }
 
     [Fact]
@@ -154,13 +162,17 @@ public class ServiceCoverageTests
         repo.Setup(r => r.ObtenerPorIdAsync(It.IsAny<Guid>(), It.IsAny<CancellationToken>())).ReturnsAsync(plantilla);
         repo.Setup(r => r.ObtenerConConceptosAsync(It.IsAny<Guid>(), It.IsAny<CancellationToken>())).ReturnsAsync(plantilla);
         var sut = new PlantillaNominaService(
-            repo.Object, Mock.Of<IConceptoNominaRepository>(), _uow.Object, new PlantillaNominaValidator());
+            repo.Object, Mock.Of<IConceptoNominaRepository>(), Mock.Of<INominaRepository>(), _uow.Object, new PlantillaNominaValidator());
 
         await sut.DesactivarAsync(plantilla.Id);
         var obtenida = await sut.ObtenerPorIdAsync(plantilla.Id);
 
         plantilla.Activo.Should().BeFalse();
         obtenida.Should().NotBeNull();
+
+        await sut.ActivarAsync(plantilla.Id);
+
+        plantilla.Activo.Should().BeTrue();
     }
 
     [Fact]
@@ -169,11 +181,15 @@ public class ServiceCoverageTests
         var repo = new Mock<IPlantillaCotizacionRepository>();
         var plantilla = new PlantillaCotizacion(_empresaId, "Formal");
         repo.Setup(r => r.ObtenerPorIdAsync(It.IsAny<Guid>(), It.IsAny<CancellationToken>())).ReturnsAsync(plantilla);
-        var sut = new PlantillaCotizacionService(repo.Object, _uow.Object, new PlantillaCotizacionValidator());
+        var sut = new PlantillaCotizacionService(repo.Object, Mock.Of<ICotizacionRepository>(), _uow.Object, new PlantillaCotizacionValidator());
 
         await sut.DesactivarAsync(plantilla.Id);
 
         plantilla.Activo.Should().BeFalse();
+
+        await sut.ActivarAsync(plantilla.Id);
+
+        plantilla.Activo.Should().BeTrue();
     }
 
     [Fact]

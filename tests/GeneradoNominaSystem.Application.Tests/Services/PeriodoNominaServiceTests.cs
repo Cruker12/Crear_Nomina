@@ -14,11 +14,12 @@ namespace GeneradoNominaSystem.Application.Tests.Services;
 public class PeriodoNominaServiceTests
 {
     private readonly Mock<IPeriodoNominaRepository> _periodos = new();
+    private readonly Mock<INominaRepository> _nominas = new();
     private readonly Mock<IUnitOfWork> _uow = new();
 
     private PeriodoNominaService CrearSut()
     {
-        return new PeriodoNominaService(_periodos.Object, _uow.Object, new PeriodoNominaValidator());
+        return new PeriodoNominaService(_periodos.Object, _nominas.Object, _uow.Object, new PeriodoNominaValidator());
     }
 
     private static PeriodoNominaDto CrearDto(Guid empresaId)
@@ -73,5 +74,56 @@ public class PeriodoNominaServiceTests
         var resultado = await sut.CrearAsync(CrearDto(empresaId));
 
         resultado.Should().NotBeNull();
+    }
+
+    [Fact]
+    public async Task DesactivarYActivar_PeriodoExistente_DeberiaCambiarEstado()
+    {
+        var empresaId = Guid.NewGuid();
+        var periodo = new PeriodoNomina(empresaId, "Marzo 2026", TipoPeriodo.Mensual, new DateTime(2026, 3, 1), new DateTime(2026, 3, 31));
+        _periodos.Setup(r => r.ObtenerPorIdAsync(periodo.Id, It.IsAny<CancellationToken>()))
+            .ReturnsAsync(periodo);
+        var sut = CrearSut();
+
+        await sut.DesactivarAsync(periodo.Id);
+        periodo.Activo.Should().BeFalse();
+
+        await sut.ActivarAsync(periodo.Id);
+        periodo.Activo.Should().BeTrue();
+    }
+
+    [Fact]
+    public async Task EliminarAsync_SinNominas_DeberiaEliminar()
+    {
+        var empresaId = Guid.NewGuid();
+        var periodo = new PeriodoNomina(empresaId, "Marzo 2026", TipoPeriodo.Mensual, new DateTime(2026, 3, 1), new DateTime(2026, 3, 31));
+        _periodos.Setup(r => r.ObtenerPorIdAsync(periodo.Id, It.IsAny<CancellationToken>()))
+            .ReturnsAsync(periodo);
+        _nominas.Setup(r => r.ListarPorPeriodoAsync(periodo.Id, It.IsAny<CancellationToken>()))
+            .ReturnsAsync(new List<Nomina>());
+        var sut = CrearSut();
+
+        await sut.EliminarAsync(periodo.Id);
+
+        _periodos.Verify(r => r.Eliminar(periodo), Times.Once);
+        _uow.Verify(u => u.GuardarCambiosAsync(It.IsAny<CancellationToken>()), Times.Once);
+    }
+
+    [Fact]
+    public async Task EliminarAsync_ConNominas_DeberiaLanzarReglaNegocio()
+    {
+        var empresaId = Guid.NewGuid();
+        var periodo = new PeriodoNomina(empresaId, "Marzo 2026", TipoPeriodo.Mensual, new DateTime(2026, 3, 1), new DateTime(2026, 3, 31));
+        var nomina = new Nomina(empresaId, Guid.NewGuid(), periodo.Id);
+        _periodos.Setup(r => r.ObtenerPorIdAsync(periodo.Id, It.IsAny<CancellationToken>()))
+            .ReturnsAsync(periodo);
+        _nominas.Setup(r => r.ListarPorPeriodoAsync(periodo.Id, It.IsAny<CancellationToken>()))
+            .ReturnsAsync(new List<Nomina> { nomina });
+        var sut = CrearSut();
+
+        var accion = () => sut.EliminarAsync(periodo.Id);
+
+        await accion.Should().ThrowAsync<ReglaNegocioException>();
+        _periodos.Verify(r => r.Eliminar(It.IsAny<PeriodoNomina>()), Times.Never);
     }
 }
