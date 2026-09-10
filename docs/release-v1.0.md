@@ -26,14 +26,23 @@ Estado: ✅ Verificado (138/138 tests + smoke del .exe desde cero sin errores)
 
 ## Instalación
 
+Opción recomendada (accesos directos en Escritorio y Menú Inicio):
+
+```powershell
+powershell -ExecutionPolicy Bypass -File scripts/instalar.ps1 -Compilar
+```
+
+Instalación manual:
+
 1. Copia la carpeta `win-x64` del paquete a la máquina destino
    (ej. `C:\Programas\GeneradoNominaSystem`).
 2. Ejecuta `GeneradoNominaSystem.Presentation.exe`.
 3. En el primer arranque se crea `%LocalAppData%\GeneradoNominaSystem\`
    con `data\app.db` (migraciones aplicadas solas) y `logs\`.
-4. Opcional: crea un acceso directo al .exe en el Escritorio.
 
-No hay instalador ni registro de Windows en v1.0.0.
+Para desinstalar: `scripts/desinstalar.ps1` (conserva los datos por defecto).
+
+Sin registro de Windows en v1.0.0.
 
 ## Primer uso sugerido
 
@@ -78,7 +87,7 @@ Dependencias solo de tests (no se distribuyen): xUnit, Moq, FluentAssertions, co
 
 - Sin paginación en listados; N+1 al cargar detalles (bien hasta miles de registros).
 - Personalización visual de documentos (logo/firma) usa defaults.
-- Sin instalador, icono custom, firma de código ni auto-actualización.
+- Script de instalación con accesos directos (`scripts/instalar.ps1`), sin firma de código ni auto-actualización.
 - Sin multiusuario/autenticación; `GeneradoPor` = "Sistema".
 - Sin motor de fórmulas (porcentaje o valor fijo).
 - Editar/quitar líneas solo donde existe (cotizaciones y plantillas sí; nóminas: anular+recrear).

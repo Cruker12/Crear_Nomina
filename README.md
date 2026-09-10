@@ -37,12 +37,25 @@ Para **desarrollar**:
 
 ## Instalación y ejecución
 
-1. Copia la carpeta `win-x64` publicada (ver `scripts/publish-windows.ps1`)
-   a la máquina destino, por ejemplo `C:\Programas\GeneradoNominaSystem`.
-2. Ejecuta `GeneradoNominaSystem.Presentation.exe`.
-3. En el primer arranque la aplicación crea sus carpetas y la base de datos
-   automáticamente (migraciones incluidas).
-4. Opcional: crea un acceso directo al .exe en el Escritorio.
+Opción recomendada (crea accesos directos en Escritorio y Menú Inicio):
+
+```powershell
+powershell -ExecutionPolicy Bypass -File scripts/instalar.ps1 -Compilar
+```
+
+O publica e instala en un solo paso:
+
+```powershell
+powershell -ExecutionPolicy Bypass -File scripts/publish-windows.ps1 -Instalar
+```
+
+Instalación manual: copia la carpeta `publish/win-x64` a la máquina destino
+y ejecuta `GeneradoNominaSystem.Presentation.exe` (autocontenido, sin .NET previo).
+
+En el primer arranque se crean las carpetas y la base de datos automáticamente.
+Datos en `%LocalAppData%\GeneradoNominaSystem\`,
+documentos en `Mis Documentos\GeneradoNominaSystem`.
+Para desinstalar: `scripts/desinstalar.ps1` (conserva los datos por defecto).
 
 Si Windows SmartScreen advierte (exe sin firma), elige
 "Más información → Ejecutar de todos modos".
