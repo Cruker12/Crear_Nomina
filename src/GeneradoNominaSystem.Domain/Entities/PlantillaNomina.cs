@@ -63,6 +63,18 @@ public class PlantillaNomina : EntityBase
         MarcarModificacion();
     }
 
+    public void RemoverConcepto(Guid conceptoNominaId)
+    {
+        var concepto = _conceptos.FirstOrDefault(c => c.ConceptoNominaId == conceptoNominaId);
+        if (concepto is null)
+        {
+            throw new ReglaNegocioException("El concepto no está incluido en la plantilla.");
+        }
+
+        _conceptos.Remove(concepto);
+        MarcarModificacion();
+    }
+
     public void Desactivar()
     {
         Activo = false;

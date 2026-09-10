@@ -16,6 +16,7 @@ public sealed class NominaService : INominaService
     private readonly IEmpleadoRepository _empleados;
     private readonly IPeriodoNominaRepository _periodos;
     private readonly IConceptoNominaRepository _conceptos;
+    private readonly IPlantillaNominaRepository _plantillas;
     private readonly IUnitOfWork _uow;
     private readonly IValidator<DetalleNominaDto> _detalleValidator;
     private readonly ServicioCalculoNomina _motor = new();
@@ -25,6 +26,7 @@ public sealed class NominaService : INominaService
         IEmpleadoRepository empleados,
         IPeriodoNominaRepository periodos,
         IConceptoNominaRepository conceptos,
+        IPlantillaNominaRepository plantillas,
         IUnitOfWork uow,
         IValidator<DetalleNominaDto> detalleValidator)
     {
@@ -32,6 +34,7 @@ public sealed class NominaService : INominaService
         _empleados = empleados;
         _periodos = periodos;
         _conceptos = conceptos;
+        _plantillas = plantillas;
         _uow = uow;
         _detalleValidator = detalleValidator;
     }
@@ -93,6 +96,51 @@ public sealed class NominaService : INominaService
         await _uow.GuardarCambiosAsync(ct);
 
         return await MapearAsync(entidad, ct);
+    }
+
+    public async Task<NominaDto> CrearDesdePlantillaAsync(
+        Guid empresaId,
+        Guid empleadoId,
+        Guid periodoId,
+        Guid plantillaId,
+        string moneda = "COP",
+        CancellationToken ct = default)
+    {
+        var plantilla = await _plantillas.ObtenerConConceptosAsync(plantillaId, ct);
+        if (plantilla is null || plantilla.EmpresaId != empresaId || !plantilla.Activo)
+        {
+            throw new ReglaNegocioException("La plantilla no existe, no está activa o no pertenece a esta empresa.");
+        }
+
+        if (plantilla.Conceptos.Count == 0)
+        {
+            throw new ReglaNegocioException("La plantilla no tiene conceptos para precargar.");
+        }
+
+        var creada = await CrearAsync(empresaId, empleadoId, periodoId, ct);
+        var nomina = await _nominas.ObtenerConDetallesAsync(creada.Id, ct);
+        if (nomina is null)
+        {
+            throw new ReglaNegocioException("No se pudo cargar la nómina recién creada.");
+        }
+
+        foreach (var pc in plantilla.Conceptos.OrderBy(c => c.Orden))
+        {
+            var concepto = await _conceptos.ObtenerPorIdAsync(pc.ConceptoNominaId, ct);
+            if (concepto is null || !concepto.Activo)
+            {
+                continue;
+            }
+
+            var valor = pc.ValorPorDefecto ?? Dinero.Cero(moneda);
+            nomina.AgregarDetalle(new DetalleNomina(nomina.Id, concepto.Id, valor, pc.Orden));
+        }
+
+        _nominas.Actualizar(nomina);
+        await _uow.GuardarCambiosAsync(ct);
+
+        var recargada = await _nominas.ObtenerConDetallesAsync(nomina.Id, ct);
+        return await MapearAsync(recargada!, ct);
     }
 
     public async Task<NominaDto> AgregarDetalleAsync(

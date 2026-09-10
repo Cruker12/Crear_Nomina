@@ -34,6 +34,9 @@
             <TabItem Header="Nóminas">
                 <views:NominaView x:Name="NominaView" />
             </TabItem>
+            <TabItem Header="Plantillas">
+                <views:PlantillaView x:Name="PlantillaView" />
+            </TabItem>
         </TabControl>
     </Grid>
 </Window>

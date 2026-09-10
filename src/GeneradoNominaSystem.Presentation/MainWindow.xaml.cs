@@ -11,7 +11,8 @@ public partial class MainWindow : Window
         EmpleadoViewModel empleadoViewModel,
         ConceptoViewModel conceptoViewModel,
         PeriodoViewModel periodoViewModel,
-        NominaViewModel nominaViewModel)
+        NominaViewModel nominaViewModel,
+        PlantillaViewModel plantillaViewModel)
     {
         InitializeComponent();
         DataContext = viewModel;
@@ -20,6 +21,7 @@ public partial class MainWindow : Window
         ConceptoView.DataContext = conceptoViewModel;
         PeriodoView.DataContext = periodoViewModel;
         NominaView.DataContext = nominaViewModel;
+        PlantillaView.DataContext = plantillaViewModel;
         Loaded += async (_, _) =>
         {
             await empresaViewModel.InicializarAsync();
@@ -27,6 +29,7 @@ public partial class MainWindow : Window
             await conceptoViewModel.InicializarAsync();
             await periodoViewModel.InicializarAsync();
             await nominaViewModel.InicializarAsync();
+            await plantillaViewModel.InicializarAsync();
         };
     }
 }

@@ -12,6 +12,14 @@ public interface INominaService
 
     Task<NominaDto> CrearAsync(Guid empresaId, Guid empleadoId, Guid periodoId, CancellationToken ct = default);
 
+    Task<NominaDto> CrearDesdePlantillaAsync(
+        Guid empresaId,
+        Guid empleadoId,
+        Guid periodoId,
+        Guid plantillaId,
+        string moneda = "COP",
+        CancellationToken ct = default);
+
     Task<NominaDto> AgregarDetalleAsync(
         Guid nominaId,
         Guid conceptoId,

@@ -13,6 +13,7 @@ public static class DependencyInjection
         services.AddTransient<ConceptoViewModel>();
         services.AddTransient<PeriodoViewModel>();
         services.AddTransient<NominaViewModel>();
+        services.AddTransient<PlantillaViewModel>();
         services.AddSingleton<MainWindow>();
 
         return services;

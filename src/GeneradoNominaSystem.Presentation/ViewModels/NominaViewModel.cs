@@ -13,6 +13,7 @@ public sealed class NominaViewModel : ViewModelBase
     private readonly IEmpleadoService _empleados;
     private readonly IPeriodoNominaService _periodos;
     private readonly IConceptoNominaService _conceptos;
+    private readonly IPlantillaNominaService _plantillas;
 
     private ObservableCollection<EmpresaDto> _empresasLista = new();
     private EmpresaDto? _empresaSeleccionada;
@@ -24,6 +25,8 @@ public sealed class NominaViewModel : ViewModelBase
     private NominaDto? _seleccionada;
     private ObservableCollection<ConceptoNominaDto> _conceptosLista = new();
     private ConceptoNominaDto? _conceptoSeleccionado;
+    private ObservableCollection<PlantillaNominaDto> _plantillasLista = new();
+    private PlantillaNominaDto? _plantillaSeleccionada;
     private decimal _nuevoValor;
     private decimal? _nuevaCantidad;
     private decimal? _baseMonto;
@@ -37,18 +40,23 @@ public sealed class NominaViewModel : ViewModelBase
         IEmpresaService empresas,
         IEmpleadoService empleados,
         IPeriodoNominaService periodos,
-        IConceptoNominaService conceptos)
+        IConceptoNominaService conceptos,
+        IPlantillaNominaService plantillas)
     {
         _nominas = nominas;
         _empresas = empresas;
         _empleados = empleados;
         _periodos = periodos;
         _conceptos = conceptos;
+        _plantillas = plantillas;
 
         RecargarCommand = new RelayCommand(async _ => await RecargarAsync(), _ => !Ocupado);
         CrearCommand = new RelayCommand(
             async _ => await CrearAsync(),
             _ => !Ocupado && EmpleadoSeleccionado is not null && PeriodoSeleccionado is not null);
+        CrearDesdePlantillaCommand = new RelayCommand(
+            async _ => await CrearDesdePlantillaAsync(),
+            _ => !Ocupado && EmpleadoSeleccionado is not null && PeriodoSeleccionado is not null && PlantillaSeleccionada is not null);
         AgregarDetalleCommand = new RelayCommand(
             async _ => await AgregarDetalleAsync(),
             _ => !Ocupado && Seleccionada is not null && ConceptoSeleccionado is not null);
@@ -149,6 +157,18 @@ public sealed class NominaViewModel : ViewModelBase
         set => SetProperty(ref _conceptoSeleccionado, value);
     }
 
+    public ObservableCollection<PlantillaNominaDto> PlantillasLista
+    {
+        get => _plantillasLista;
+        private set => SetProperty(ref _plantillasLista, value);
+    }
+
+    public PlantillaNominaDto? PlantillaSeleccionada
+    {
+        get => _plantillaSeleccionada;
+        set => SetProperty(ref _plantillaSeleccionada, value);
+    }
+
     public decimal NuevoValor
     {
         get => _nuevoValor;
@@ -195,6 +215,8 @@ public sealed class NominaViewModel : ViewModelBase
 
     public ICommand CrearCommand { get; }
 
+    public ICommand CrearDesdePlantillaCommand { get; }
+
     public ICommand AgregarDetalleCommand { get; }
 
     public ICommand CalcularCommand { get; }
@@ -233,9 +255,12 @@ public sealed class NominaViewModel : ViewModelBase
             PeriodosLista = new ObservableCollection<PeriodoNominaDto>(periodos.Where(p => p.Activo));
             var conceptos = await _conceptos.ListarPorEmpresaAsync(EmpresaSeleccionada.Id);
             ConceptosLista = new ObservableCollection<ConceptoNominaDto>(conceptos.Where(c => c.Activo).OrderBy(c => c.Orden));
+            var plantillas = await _plantillas.ListarPorEmpresaAsync(EmpresaSeleccionada.Id);
+            PlantillasLista = new ObservableCollection<PlantillaNominaDto>(plantillas.Where(p => p.Activo));
 
             EmpleadoSeleccionado = EmpleadosLista.FirstOrDefault();
             PeriodoSeleccionado = PeriodosLista.FirstOrDefault();
+            PlantillaSeleccionada = PlantillasLista.FirstOrDefault();
         });
     }
 
@@ -270,6 +295,25 @@ public sealed class NominaViewModel : ViewModelBase
         {
             var creada = await _nominas.CrearAsync(EmpresaSeleccionada.Id, EmpleadoSeleccionado.Id, PeriodoSeleccionado.Id);
             Informar($"Nómina creada en Borrador para {creada.EmpleadoNombre}.", esError: false);
+            await RecargarNominasAsync();
+        });
+    }
+
+    private async Task CrearDesdePlantillaAsync()
+    {
+        if (EmpresaSeleccionada is null || EmpleadoSeleccionado is null || PeriodoSeleccionado is null || PlantillaSeleccionada is null)
+        {
+            return;
+        }
+
+        await EjecutarAsync(async () =>
+        {
+            var creada = await _nominas.CrearDesdePlantillaAsync(
+                EmpresaSeleccionada.Id,
+                EmpleadoSeleccionado.Id,
+                PeriodoSeleccionado.Id,
+                PlantillaSeleccionada.Id);
+            Informar($"Nómina creada desde {PlantillaSeleccionada.Nombre} con {creada.Detalles.Count} detalle(s).", esError: false);
             await RecargarNominasAsync();
         });
     }

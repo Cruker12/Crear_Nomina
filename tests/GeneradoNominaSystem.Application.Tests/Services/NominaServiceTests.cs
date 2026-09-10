@@ -17,6 +17,7 @@ public class NominaServiceTests
     private readonly Mock<IEmpleadoRepository> _empleados = new();
     private readonly Mock<IPeriodoNominaRepository> _periodos = new();
     private readonly Mock<IConceptoNominaRepository> _conceptos = new();
+    private readonly Mock<IPlantillaNominaRepository> _plantillas = new();
     private readonly Mock<IUnitOfWork> _uow = new();
 
     private readonly Guid _empresaId = Guid.NewGuid();
@@ -50,6 +51,7 @@ public class NominaServiceTests
             _empleados.Object,
             _periodos.Object,
             _conceptos.Object,
+            _plantillas.Object,
             _uow.Object,
             new DetalleNominaValidator());
     }
@@ -128,6 +130,51 @@ public class NominaServiceTests
         var sut = CrearSut();
 
         var accion = () => sut.CalcularAsync(nomina.Id);
+
+        await accion.Should().ThrowAsync<ReglaNegocioException>();
+    }
+
+    [Fact]
+    public async Task CrearDesdePlantillaAsync_PlantillaConDosConceptos_DeberiaPrecargarDetalles()
+    {
+        var plantilla = new PlantillaNomina(_empresaId, "Quincenal base");
+        plantilla.AgregarConcepto(new PlantillaConcepto(plantilla.Id, _salario.Id, 1, true, new Dinero(2000000m, "COP")));
+        plantilla.AgregarConcepto(new PlantillaConcepto(plantilla.Id, _salud.Id, 2));
+
+        Nomina? capturada = null;
+        _nominas.Setup(r => r.AgregarAsync(It.IsAny<Nomina>(), It.IsAny<CancellationToken>()))
+            .Callback<Nomina, CancellationToken>((n, _) => capturada = n);
+        _nominas.Setup(r => r.ObtenerConDetallesAsync(It.IsAny<Guid>(), It.IsAny<CancellationToken>()))
+            .ReturnsAsync(() => capturada);
+        _empleados.Setup(r => r.ObtenerPorIdAsync(It.IsAny<Guid>(), It.IsAny<CancellationToken>()))
+            .ReturnsAsync(_empleado);
+        _periodos.Setup(r => r.ObtenerPorIdAsync(It.IsAny<Guid>(), It.IsAny<CancellationToken>()))
+            .ReturnsAsync(_periodo);
+        _plantillas.Setup(r => r.ObtenerConConceptosAsync(plantilla.Id, It.IsAny<CancellationToken>()))
+            .ReturnsAsync(plantilla);
+        _conceptos.Setup(r => r.ObtenerPorIdAsync(_salario.Id, It.IsAny<CancellationToken>()))
+            .ReturnsAsync(_salario);
+        _conceptos.Setup(r => r.ObtenerPorIdAsync(_salud.Id, It.IsAny<CancellationToken>()))
+            .ReturnsAsync(_salud);
+        _conceptos.Setup(r => r.ListarActivosAsync(It.IsAny<Guid>(), It.IsAny<CancellationToken>()))
+            .ReturnsAsync(new List<ConceptoNomina> { _salario, _salud });
+        var sut = CrearSut();
+
+        var resultado = await sut.CrearDesdePlantillaAsync(_empresaId, _empleado.Id, _periodo.Id, plantilla.Id);
+
+        resultado.Detalles.Should().HaveCount(2);
+        resultado.Detalles.Should().Contain(d => d.ConceptoNominaId == _salario.Id && d.ValorMonto == 2000000m);
+    }
+
+    [Fact]
+    public async Task CrearDesdePlantillaAsync_PlantillaVacia_DeberiaLanzarReglaNegocio()
+    {
+        var plantilla = new PlantillaNomina(_empresaId, "Vacía");
+        _plantillas.Setup(r => r.ObtenerConConceptosAsync(plantilla.Id, It.IsAny<CancellationToken>()))
+            .ReturnsAsync(plantilla);
+        var sut = CrearSut();
+
+        var accion = () => sut.CrearDesdePlantillaAsync(_empresaId, _empleado.Id, _periodo.Id, plantilla.Id);
 
         await accion.Should().ThrowAsync<ReglaNegocioException>();
     }

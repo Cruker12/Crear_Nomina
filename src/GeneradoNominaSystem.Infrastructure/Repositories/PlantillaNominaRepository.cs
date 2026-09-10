@@ -16,4 +16,11 @@ public sealed class PlantillaNominaRepository : Repository<PlantillaNomina>, IPl
     {
         return await DbSet.AsNoTracking().Where(p => p.EmpresaId == empresaId).ToListAsync(ct);
     }
+
+    public async Task<PlantillaNomina?> ObtenerConConceptosAsync(Guid id, CancellationToken ct = default)
+    {
+        return await DbSet
+            .Include(p => p.Conceptos)
+            .FirstOrDefaultAsync(p => p.Id == id, ct);
+    }
 }

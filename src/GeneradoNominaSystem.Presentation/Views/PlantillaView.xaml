@@ -1,0 +1,97 @@
+<UserControl x:Class="GeneradoNominaSystem.Presentation.Views.PlantillaView"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             mc:Ignorable="d"
+             d:DesignHeight="650" d:DesignWidth="1100">
+    <Grid Margin="12">
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="*" />
+            <RowDefinition Height="Auto" />
+        </Grid.RowDefinitions>
+
+        <StackPanel Grid.Row="0" Orientation="Horizontal" Margin="0,0,0,8">
+            <TextBlock Text="Empresa" VerticalAlignment="Center" />
+            <ComboBox ItemsSource="{Binding EmpresasLista}"
+                      SelectedItem="{Binding EmpresaSeleccionada}"
+                      DisplayMemberPath="NombreComercial"
+                      Width="220" Margin="8,0,0,0" />
+            <Button Content="Recargar" Command="{Binding RecargarCommand}" Margin="16,0,0,0" Padding="12,4" />
+            <Button Content="Nueva" Command="{Binding NuevaCommand}" Margin="8,0,0,0" Padding="12,4" />
+            <Button Content="Guardar plantilla" Command="{Binding GuardarCommand}" Margin="8,0,0,0" Padding="12,4" />
+        </StackPanel>
+
+        <Grid Grid.Row="1">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="*" />
+                <ColumnDefinition Width="*" />
+                <ColumnDefinition Width="*" />
+            </Grid.ColumnDefinitions>
+
+            <GroupBox Grid.Column="0" Header="Plantillas" Margin="0,0,8,0">
+                <Grid>
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="Auto" />
+                        <RowDefinition Height="*" />
+                    </Grid.RowDefinitions>
+                    <StackPanel DataContext="{Binding Edicion}" Margin="0,0,0,8">
+                        <TextBlock Text="Nombre" />
+                        <TextBox Text="{Binding Nombre, UpdateSourceTrigger=PropertyChanged}" Margin="0,0,0,4" />
+                        <TextBlock Text="Descripción" />
+                        <TextBox Text="{Binding Descripcion, UpdateSourceTrigger=PropertyChanged}" />
+                    </StackPanel>
+                    <DataGrid Grid.Row="1"
+                              ItemsSource="{Binding PlantillasLista}"
+                              SelectedItem="{Binding Seleccionada}"
+                              AutoGenerateColumns="False"
+                              IsReadOnly="True">
+                        <DataGrid.Columns>
+                            <DataGridTextColumn Header="Nombre" Binding="{Binding Nombre}" Width="*" />
+                            <DataGridCheckBoxColumn Header="Activa" Binding="{Binding Activo}" Width="60" />
+                        </DataGrid.Columns>
+                    </DataGrid>
+                </Grid>
+            </GroupBox>
+
+            <GroupBox Grid.Column="1" Header="Conceptos de la plantilla" Margin="8,0,8,0">
+                <Grid>
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="*" />
+                        <RowDefinition Height="Auto" />
+                    </Grid.RowDefinitions>
+                    <DataGrid ItemsSource="{Binding Seleccionada.Conceptos}"
+                              SelectedItem="{Binding ConceptoEnPlantillaSeleccionado}"
+                              AutoGenerateColumns="False"
+                              IsReadOnly="True">
+                        <DataGrid.Columns>
+                            <DataGridTextColumn Header="Concepto" Binding="{Binding ConceptoNombre}" Width="*" />
+                            <DataGridTextColumn Header="Orden" Binding="{Binding Orden}" Width="60" />
+                            <DataGridTextColumn Header="Defecto" Binding="{Binding ValorPorDefectoMonto}" Width="90" />
+                        </DataGrid.Columns>
+                    </DataGrid>
+                    <Button Grid.Row="1" Content="Quitar seleccionado" Command="{Binding QuitarConceptoCommand}" Margin="0,8,0,0" Padding="12,4" />
+                </Grid>
+            </GroupBox>
+
+            <GroupBox Grid.Column="2" Header="Agregar concepto" Margin="8,0,0,0">
+                <StackPanel>
+                    <TextBlock Text="Concepto" />
+                    <ComboBox ItemsSource="{Binding ConceptosLista}"
+                              SelectedItem="{Binding ConceptoSeleccionado}"
+                              DisplayMemberPath="Nombre"
+                              Margin="0,0,0,6" />
+                    <TextBlock Text="Orden" />
+                    <TextBox Text="{Binding NuevoOrden, UpdateSourceTrigger=PropertyChanged}" Margin="0,0,0,6" />
+                    <CheckBox Content="Obligatorio" IsChecked="{Binding NuevoObligatorio}" Margin="0,0,0,6" />
+                    <TextBlock Text="Valor por defecto (opcional)" />
+                    <TextBox Text="{Binding NuevoValorDefecto, UpdateSourceTrigger=PropertyChanged}" Margin="0,0,0,6" />
+                    <Button Content="Agregar a plantilla" Command="{Binding AgregarConceptoCommand}" Padding="12,4" />
+                </StackPanel>
+            </GroupBox>
+        </Grid>
+
+        <TextBlock Grid.Row="2" Text="{Binding Mensaje}" Margin="0,8,0,0" />
+    </Grid>
+</UserControl>
