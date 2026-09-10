@@ -14,6 +14,8 @@ public static class DependencyInjection
         services.AddTransient<PeriodoViewModel>();
         services.AddTransient<NominaViewModel>();
         services.AddTransient<PlantillaViewModel>();
+        services.AddTransient<ProductoViewModel>();
+        services.AddTransient<CotizacionViewModel>();
         services.AddSingleton<MainWindow>();
 
         return services;

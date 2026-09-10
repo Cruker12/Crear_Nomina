@@ -117,9 +117,36 @@ public class Cotizacion : EntityBase
         MarcarModificacion();
     }
 
+    public void RemoverDetalle(Guid detalleId)
+    {
+        if (Estado != EstadoCotizacion.Borrador)
+        {
+            throw new ReglaNegocioException("Solo se pueden editar cotizaciones en Borrador.");
+        }
+
+        var detalle = _detalles.FirstOrDefault(d => d.Id == detalleId);
+        if (detalle is null)
+        {
+            throw new ReglaNegocioException("El detalle no existe en la cotización.");
+        }
+
+        _detalles.Remove(detalle);
+        RecalcularTotales();
+        MarcarModificacion();
+    }
+
     public void CambiarEstado(EstadoCotizacion nuevoEstado)
     {
         Estado = nuevoEstado;
+        MarcarModificacion();
+    }
+
+    public void ActualizarDatosCliente(string? documento, string? email, string? telefono, string? observaciones)
+    {
+        ClienteDocumento = documento?.Trim();
+        ClienteEmail = email?.Trim();
+        ClienteTelefono = telefono?.Trim();
+        Observaciones = observaciones?.Trim();
         MarcarModificacion();
     }
 

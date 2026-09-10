@@ -22,4 +22,11 @@ public sealed class CotizacionRepository : Repository<Cotizacion>, ICotizacionRe
     {
         return await DbSet.AsNoTracking().Where(c => c.EmpresaId == empresaId).ToListAsync(ct);
     }
+
+    public async Task<Cotizacion?> ObtenerConDetallesAsync(Guid id, CancellationToken ct = default)
+    {
+        return await DbSet
+            .Include(c => c.Detalles)
+            .FirstOrDefaultAsync(c => c.Id == id, ct);
+    }
 }

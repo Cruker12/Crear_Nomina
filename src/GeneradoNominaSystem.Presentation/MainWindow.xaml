@@ -37,6 +37,12 @@
             <TabItem Header="Plantillas">
                 <views:PlantillaView x:Name="PlantillaView" />
             </TabItem>
+            <TabItem Header="Productos">
+                <views:ProductoView x:Name="ProductoView" />
+            </TabItem>
+            <TabItem Header="Cotizaciones">
+                <views:CotizacionView x:Name="CotizacionView" />
+            </TabItem>
         </TabControl>
     </Grid>
 </Window>

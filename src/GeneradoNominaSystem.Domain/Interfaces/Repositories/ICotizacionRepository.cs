@@ -7,4 +7,6 @@ public interface ICotizacionRepository : IRepository<Cotizacion>
     Task<Cotizacion?> ObtenerPorNumeroAsync(Guid empresaId, string numeroCotizacion, CancellationToken ct = default);
 
     Task<IReadOnlyList<Cotizacion>> ListarPorEmpresaAsync(Guid empresaId, CancellationToken ct = default);
+
+    Task<Cotizacion?> ObtenerConDetallesAsync(Guid id, CancellationToken ct = default);
 }
