@@ -60,7 +60,7 @@ public class ServiceCoverageTests
         var empresa = CrearEmpresa();
         repo.Setup(r => r.ObtenerPorIdAsync(It.IsAny<Guid>(), It.IsAny<CancellationToken>())).ReturnsAsync(empresa);
         repo.Setup(r => r.ObtenerPorNitAsync(It.IsAny<string>(), It.IsAny<CancellationToken>())).ReturnsAsync((Empresa?)null);
-        var sut = new EmpresaService(repo.Object, _uow.Object, new EmpresaValidator());
+        var sut = new EmpresaService(repo.Object, Mock.Of<IEmpleadoRepository>(), _uow.Object, new EmpresaValidator());
 
         var dto = CrearEmpresaDto();
         dto.Id = empresa.Id;
@@ -70,7 +70,11 @@ public class ServiceCoverageTests
 
         actualizada.NombreComercial.Should().Be("Nuevo Nombre");
         empresa.Activo.Should().BeFalse();
-        _uow.Verify(u => u.GuardarCambiosAsync(It.IsAny<CancellationToken>()), Times.Exactly(2));
+
+        await sut.ActivarAsync(empresa.Id);
+        empresa.Activo.Should().BeTrue();
+
+        _uow.Verify(u => u.GuardarCambiosAsync(It.IsAny<CancellationToken>()), Times.Exactly(3));
     }
 
     [Fact]

@@ -45,7 +45,7 @@ public sealed class NominaEndToEndTests : IDisposable
         var cotizacionRepo = new CotizacionRepository(context);
         var productoRepo = new ProductoServicioRepository(context);
 
-        var empresaService = new EmpresaService(empresaRepo, uow, new EmpresaValidator());
+        var empresaService = new EmpresaService(empresaRepo, empleadoRepo, uow, new EmpresaValidator());
         var empleadoService = new EmpleadoService(empleadoRepo, empresaRepo, uow, new EmpleadoValidator());
         var periodoService = new PeriodoNominaService(periodoRepo, uow, new PeriodoNominaValidator());
         var conceptoService = new ConceptoNominaService(conceptoRepo, uow, new ConceptoNominaValidator());
@@ -137,10 +137,11 @@ public sealed class NominaEndToEndTests : IDisposable
         using var context = CrearContexto();
         var uow = new EfUnitOfWork(context);
         var empresaRepo = new EmpresaRepository(context);
+        var empleadoRepo = new EmpleadoRepository(context);
         var conceptoRepo = new ConceptoNominaRepository(context);
         var plantillaRepo = new PlantillaNominaRepository(context);
 
-        var empresaService = new EmpresaService(empresaRepo, uow, new EmpresaValidator());
+        var empresaService = new EmpresaService(empresaRepo, empleadoRepo, uow, new EmpresaValidator());
         var plantillaService = new PlantillaNominaService(plantillaRepo, conceptoRepo, uow, new PlantillaNominaValidator());
         var conceptoService = new ConceptoNominaService(conceptoRepo, uow, new ConceptoNominaValidator());
 
@@ -183,11 +184,12 @@ public sealed class NominaEndToEndTests : IDisposable
         using var context = CrearContexto();
         var uow = new EfUnitOfWork(context);
         var empresaRepo = new EmpresaRepository(context);
+        var empleadoRepo = new EmpleadoRepository(context);
         var cotizacionRepo = new CotizacionRepository(context);
         var productoRepo = new ProductoServicioRepository(context);
         var plantillaCotRepo = new PlantillaCotizacionRepository(context);
 
-        var empresaService = new EmpresaService(empresaRepo, uow, new EmpresaValidator());
+        var empresaService = new EmpresaService(empresaRepo, empleadoRepo, uow, new EmpresaValidator());
         var cotizacionService = new CotizacionService(
             cotizacionRepo, productoRepo, plantillaCotRepo, uow,
             new ServicioNumeracion(), new CotizacionValidator(), new DetalleCotizacionValidator());

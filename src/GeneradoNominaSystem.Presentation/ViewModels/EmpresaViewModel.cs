@@ -25,8 +25,14 @@ public sealed class EmpresaViewModel : ViewModelBase
         GuardarCommand = new RelayCommand(async _ => await GuardarAsync(), _ => !Ocupado);
         NuevaCommand = new RelayCommand(_ => Nueva(), _ => !Ocupado);
         DesactivarCommand = new RelayCommand(
-            async _ => await DesactivarAsync(),
+            async _ => await CambiarAsync(false),
             _ => !Ocupado && Seleccionada is not null && Seleccionada.Activo);
+        ActivarCommand = new RelayCommand(
+            async _ => await CambiarAsync(true),
+            _ => !Ocupado && Seleccionada is not null && !Seleccionada.Activo);
+        EliminarCommand = new RelayCommand(
+            async _ => await EliminarAsync(),
+            _ => !Ocupado && Seleccionada is not null);
     }
 
     public ObservableCollection<EmpresaDto> EmpresasLista
@@ -79,6 +85,10 @@ public sealed class EmpresaViewModel : ViewModelBase
 
     public ICommand DesactivarCommand { get; }
 
+    public ICommand ActivarCommand { get; }
+
+    public ICommand EliminarCommand { get; }
+
     public async Task InicializarAsync() => await RecargarAsync();
 
     private void Nueva()
@@ -117,7 +127,7 @@ public sealed class EmpresaViewModel : ViewModelBase
         });
     }
 
-    private async Task DesactivarAsync()
+    private async Task CambiarAsync(bool activar)
     {
         if (Seleccionada is null)
         {
@@ -126,8 +136,37 @@ public sealed class EmpresaViewModel : ViewModelBase
 
         await EjecutarAsync(async () =>
         {
-            await _empresas.DesactivarAsync(Seleccionada.Id);
-            Informar("Empresa desactivada (baja lógica).", esError: false);
+            if (activar)
+            {
+                await _empresas.ActivarAsync(Seleccionada.Id);
+                Informar("Empresa activada.", esError: false);
+            }
+            else
+            {
+                await _empresas.DesactivarAsync(Seleccionada.Id);
+                Informar("Empresa desactivada (baja lógica).", esError: false);
+            }
+
+            await RecargarSilenciosoAsync();
+        });
+    }
+
+    private async Task EliminarAsync()
+    {
+        if (Seleccionada is null)
+        {
+            return;
+        }
+
+        var nombre = Seleccionada.NombreComercial;
+        var id = Seleccionada.Id;
+
+        await EjecutarAsync(async () =>
+        {
+            await _empresas.EliminarAsync(id);
+            Seleccionada = null;
+            Edicion = new EmpresaDto();
+            Informar($"Empresa {nombre} eliminada.", esError: false);
             await RecargarSilenciosoAsync();
         });
     }

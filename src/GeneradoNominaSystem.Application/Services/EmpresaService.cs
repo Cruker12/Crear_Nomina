@@ -12,15 +12,18 @@ namespace GeneradoNominaSystem.Application.Services;
 public sealed class EmpresaService : IEmpresaService
 {
     private readonly IEmpresaRepository _empresas;
+    private readonly IEmpleadoRepository _empleados;
     private readonly IUnitOfWork _uow;
     private readonly IValidator<EmpresaDto> _validator;
 
     public EmpresaService(
         IEmpresaRepository empresas,
+        IEmpleadoRepository empleados,
         IUnitOfWork uow,
         IValidator<EmpresaDto> validator)
     {
         _empresas = empresas;
+        _empleados = empleados;
         _uow = uow;
         _validator = validator;
     }
@@ -88,6 +91,39 @@ public sealed class EmpresaService : IEmpresaService
 
         entidad.Desactivar();
         _empresas.Actualizar(entidad);
+        await _uow.GuardarCambiosAsync(ct);
+    }
+
+    public async Task ActivarAsync(Guid id, CancellationToken ct = default)
+    {
+        var entidad = await _empresas.ObtenerPorIdAsync(id, ct);
+        if (entidad is null)
+        {
+            throw new ReglaNegocioException("La empresa no existe.");
+        }
+
+        entidad.Activar();
+        _empresas.Actualizar(entidad);
+        await _uow.GuardarCambiosAsync(ct);
+    }
+
+    public async Task EliminarAsync(Guid id, CancellationToken ct = default)
+    {
+        var entidad = await _empresas.ObtenerPorIdAsync(id, ct);
+        if (entidad is null)
+        {
+            throw new ReglaNegocioException("La empresa no existe.");
+        }
+
+        var empleados = await _empleados.ListarPorEmpresaAsync(id, ct);
+        if (empleados.Count > 0)
+        {
+            throw new ReglaNegocioException(
+                "No se puede eliminar la empresa porque tiene empleados registrados. " +
+                "Elimina o reasigna sus empleados primero.");
+        }
+
+        _empresas.Eliminar(entidad);
         await _uow.GuardarCambiosAsync(ct);
     }
 
