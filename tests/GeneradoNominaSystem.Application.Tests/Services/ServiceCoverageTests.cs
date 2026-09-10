@@ -85,7 +85,7 @@ public class ServiceCoverageTests
         repo.Setup(r => r.ObtenerPorIdAsync(It.IsAny<Guid>(), It.IsAny<CancellationToken>())).ReturnsAsync(empleado);
         repo.Setup(r => r.ObtenerPorDocumentoAsync(It.IsAny<Guid>(), It.IsAny<string>(), It.IsAny<CancellationToken>()))
             .ReturnsAsync((Empleado?)null);
-        var sut = new EmpleadoService(repo.Object, Mock.Of<IEmpresaRepository>(), _uow.Object, new EmpleadoValidator());
+        var sut = new EmpleadoService(repo.Object, Mock.Of<IEmpresaRepository>(), Mock.Of<INominaRepository>(), _uow.Object, new EmpleadoValidator());
 
         var dto = new EmpleadoDto
         {

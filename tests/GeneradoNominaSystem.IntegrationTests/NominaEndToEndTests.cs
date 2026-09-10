@@ -46,7 +46,7 @@ public sealed class NominaEndToEndTests : IDisposable
         var productoRepo = new ProductoServicioRepository(context);
 
         var empresaService = new EmpresaService(empresaRepo, empleadoRepo, uow, new EmpresaValidator());
-        var empleadoService = new EmpleadoService(empleadoRepo, empresaRepo, uow, new EmpleadoValidator());
+        var empleadoService = new EmpleadoService(empleadoRepo, empresaRepo, nominaRepo, uow, new EmpleadoValidator());
         var periodoService = new PeriodoNominaService(periodoRepo, uow, new PeriodoNominaValidator());
         var conceptoService = new ConceptoNominaService(conceptoRepo, uow, new ConceptoNominaValidator());
         var nominaService = new NominaService(

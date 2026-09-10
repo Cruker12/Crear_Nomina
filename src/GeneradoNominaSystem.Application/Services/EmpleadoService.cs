@@ -14,17 +14,20 @@ public sealed class EmpleadoService : IEmpleadoService
 {
     private readonly IEmpleadoRepository _empleados;
     private readonly IEmpresaRepository _empresas;
+    private readonly INominaRepository _nominas;
     private readonly IUnitOfWork _uow;
     private readonly IValidator<EmpleadoDto> _validator;
 
     public EmpleadoService(
         IEmpleadoRepository empleados,
         IEmpresaRepository empresas,
+        INominaRepository nominas,
         IUnitOfWork uow,
         IValidator<EmpleadoDto> validator)
     {
         _empleados = empleados;
         _empresas = empresas;
+        _nominas = nominas;
         _uow = uow;
         _validator = validator;
     }
@@ -91,6 +94,26 @@ public sealed class EmpleadoService : IEmpleadoService
 
         entidad.CambiarEstado(nuevoEstado);
         _empleados.Actualizar(entidad);
+        await _uow.GuardarCambiosAsync(ct);
+    }
+
+    public async Task EliminarAsync(Guid id, CancellationToken ct = default)
+    {
+        var entidad = await _empleados.ObtenerPorIdAsync(id, ct);
+        if (entidad is null)
+        {
+            throw new ReglaNegocioException("El empleado no existe.");
+        }
+
+        var nominas = await _nominas.ListarPorEmpleadoAsync(id, ct);
+        if (nominas.Count > 0)
+        {
+            throw new ReglaNegocioException(
+                "No se puede eliminar el empleado porque tiene nóminas registradas. " +
+                "Desactívalo en su lugar.");
+        }
+
+        _empleados.Eliminar(entidad);
         await _uow.GuardarCambiosAsync(ct);
     }
 

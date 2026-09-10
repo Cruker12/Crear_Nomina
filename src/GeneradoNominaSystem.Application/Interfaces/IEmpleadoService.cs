@@ -14,4 +14,6 @@ public interface IEmpleadoService
     Task<EmpleadoDto> ActualizarAsync(EmpleadoDto dto, CancellationToken ct = default);
 
     Task CambiarEstadoAsync(Guid id, EstadoEmpleado nuevoEstado, CancellationToken ct = default);
+
+    Task EliminarAsync(Guid id, CancellationToken ct = default);
 }

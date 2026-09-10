@@ -32,6 +32,12 @@ public sealed class EmpleadoViewModel : ViewModelBase
         DesactivarCommand = new RelayCommand(
             async _ => await CambiarEstadoAsync(EstadoEmpleado.Inactivo),
             _ => !Ocupado && Seleccionado is not null && Seleccionado.Estado == EstadoEmpleado.Activo);
+        ActivarCommand = new RelayCommand(
+            async _ => await CambiarEstadoAsync(EstadoEmpleado.Activo),
+            _ => !Ocupado && Seleccionado is not null && Seleccionado.Estado != EstadoEmpleado.Activo);
+        EliminarCommand = new RelayCommand(
+            async _ => await EliminarAsync(),
+            _ => !Ocupado && Seleccionado is not null);
     }
 
     public ObservableCollection<EmpresaDto> EmpresasLista
@@ -107,6 +113,10 @@ public sealed class EmpleadoViewModel : ViewModelBase
     public ICommand NuevoCommand { get; }
 
     public ICommand DesactivarCommand { get; }
+
+    public ICommand ActivarCommand { get; }
+
+    public ICommand EliminarCommand { get; }
 
     public async Task InicializarAsync() => await RecargarAsync();
 
@@ -193,8 +203,36 @@ public sealed class EmpleadoViewModel : ViewModelBase
         await EjecutarAsync(async () =>
         {
             await _empleados.CambiarEstadoAsync(Seleccionado.Id, nuevoEstado);
-            Informar("Empleado desactivado (baja lógica).", esError: false);
+            var mensaje = nuevoEstado switch
+            {
+                EstadoEmpleado.Activo => "Empleado activado.",
+                EstadoEmpleado.Inactivo => "Empleado desactivado (baja lógica).",
+                _ => $"Empleado en estado {nuevoEstado}.",
+            };
+            Informar(mensaje, esError: false);
             var lista = await _empleados.ListarPorEmpresaAsync(EmpresaSeleccionada.Id);
+            EmpleadosLista = new ObservableCollection<EmpleadoDto>(lista);
+        });
+    }
+
+    private async Task EliminarAsync()
+    {
+        if (Seleccionado is null || EmpresaSeleccionada is null)
+        {
+            return;
+        }
+
+        var nombre = $"{Seleccionado.Nombres} {Seleccionado.Apellidos}";
+        var id = Seleccionado.Id;
+        var empresaId = EmpresaSeleccionada.Id;
+
+        await EjecutarAsync(async () =>
+        {
+            await _empleados.EliminarAsync(id);
+            Seleccionado = null;
+            Edicion = new EmpleadoDto { EmpresaId = empresaId };
+            Informar($"Empleado {nombre} eliminado.", esError: false);
+            var lista = await _empleados.ListarPorEmpresaAsync(empresaId);
             EmpleadosLista = new ObservableCollection<EmpleadoDto>(lista);
         });
     }

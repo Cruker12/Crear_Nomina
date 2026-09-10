@@ -17,6 +17,7 @@ public class EmpleadoServiceTests
 {
     private readonly Mock<IEmpleadoRepository> _empleados = new();
     private readonly Mock<IEmpresaRepository> _empresas = new();
+    private readonly Mock<INominaRepository> _nominas = new();
     private readonly Mock<IUnitOfWork> _uow = new();
 
     private static Empresa CrearEmpresa()
@@ -59,7 +60,7 @@ public class EmpleadoServiceTests
 
     private EmpleadoService CrearSut()
     {
-        return new EmpleadoService(_empleados.Object, _empresas.Object, _uow.Object, new EmpleadoValidator());
+        return new EmpleadoService(_empleados.Object, _empresas.Object, _nominas.Object, _uow.Object, new EmpleadoValidator());
     }
 
     [Fact]
@@ -130,8 +131,59 @@ public class EmpleadoServiceTests
         var sut = CrearSut();
 
         await sut.CambiarEstadoAsync(empleado.Id, EstadoEmpleado.Inactivo);
-
         empleado.Estado.Should().Be(EstadoEmpleado.Inactivo);
+
+        await sut.CambiarEstadoAsync(empleado.Id, EstadoEmpleado.Activo);
+        empleado.Estado.Should().Be(EstadoEmpleado.Activo);
+
+        _uow.Verify(u => u.GuardarCambiosAsync(It.IsAny<CancellationToken>()), Times.Exactly(2));
+    }
+
+    [Fact]
+    public async Task EliminarAsync_SinNominas_DeberiaEliminar()
+    {
+        var empresa = CrearEmpresa();
+        var empleado = CrearEmpleado(empresa.Id, "12345678");
+        _empleados.Setup(r => r.ObtenerPorIdAsync(empleado.Id, It.IsAny<CancellationToken>()))
+            .ReturnsAsync(empleado);
+        _nominas.Setup(r => r.ListarPorEmpleadoAsync(empleado.Id, It.IsAny<CancellationToken>()))
+            .ReturnsAsync(new List<Nomina>());
+        var sut = CrearSut();
+
+        await sut.EliminarAsync(empleado.Id);
+
+        _empleados.Verify(r => r.Eliminar(empleado), Times.Once);
         _uow.Verify(u => u.GuardarCambiosAsync(It.IsAny<CancellationToken>()), Times.Once);
+    }
+
+    [Fact]
+    public async Task EliminarAsync_ConNominas_DeberiaLanzarReglaNegocio()
+    {
+        var empresa = CrearEmpresa();
+        var empleado = CrearEmpleado(empresa.Id, "12345678");
+        var nomina = new Nomina(empresa.Id, empleado.Id, Guid.NewGuid());
+        _empleados.Setup(r => r.ObtenerPorIdAsync(empleado.Id, It.IsAny<CancellationToken>()))
+            .ReturnsAsync(empleado);
+        _nominas.Setup(r => r.ListarPorEmpleadoAsync(empleado.Id, It.IsAny<CancellationToken>()))
+            .ReturnsAsync(new List<Nomina> { nomina });
+        var sut = CrearSut();
+
+        var accion = () => sut.EliminarAsync(empleado.Id);
+
+        await accion.Should().ThrowAsync<ReglaNegocioException>();
+        _empleados.Verify(r => r.Eliminar(It.IsAny<Empleado>()), Times.Never);
+        _uow.Verify(u => u.GuardarCambiosAsync(It.IsAny<CancellationToken>()), Times.Never);
+    }
+
+    [Fact]
+    public async Task EliminarAsync_EmpleadoInexistente_DeberiaLanzarReglaNegocio()
+    {
+        _empleados.Setup(r => r.ObtenerPorIdAsync(It.IsAny<Guid>(), It.IsAny<CancellationToken>()))
+            .ReturnsAsync((Empleado?)null);
+        var sut = CrearSut();
+
+        var accion = () => sut.EliminarAsync(Guid.NewGuid());
+
+        await accion.Should().ThrowAsync<ReglaNegocioException>();
     }
 }
